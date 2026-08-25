@@ -1,0 +1,261 @@
+/* =====================================================
+   AB DICTIONARY
+   RESPONSIVE DESIGN
+===================================================== */
+
+
+/* ================= TABLET ================= */
+
+@media (max-width: 900px) {
+
+    .nav-links {
+        display: none;
+    }
+
+    .menu-button {
+        display: grid;
+    }
+
+
+    .hero {
+        min-height: 590px;
+    }
+
+
+    .hero h1 {
+        letter-spacing: -3px;
+    }
+
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    .stat-card:nth-child(2) {
+        border-right: none;
+    }
+
+
+    .stat-card:nth-child(-n+2) {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 20px;
+    }
+
+
+    .stat-card:nth-child(n+3) {
+        padding-top: 20px;
+    }
+
+
+    .word-card {
+        grid-template-columns: 1fr;
+    }
+
+
+    .word-card-side {
+        border-left: none;
+        border-top: 1px solid var(--border);
+    }
+
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 600px) {
+
+    .nav-container,
+    .stats-container,
+    .section,
+    .footer-container,
+    .footer-bottom {
+
+        width: min(
+            calc(100% - 28px),
+            var(--container)
+        );
+    }
+
+
+    .nav-container {
+        height: 68px;
+    }
+
+
+    .logo-text {
+        font-size: 15px;
+    }
+
+
+    .logo-mark {
+        width: 33px;
+        height: 33px;
+    }
+
+
+    .mobile-menu {
+        top: 68px;
+    }
+
+
+    .hero {
+        min-height: 600px;
+    }
+
+
+    .hero-content {
+        width: calc(100% - 28px);
+    }
+
+
+    .hero h1 {
+
+        font-size: 48px;
+
+        letter-spacing: -2.5px;
+    }
+
+
+    .hero-description {
+
+        font-size: 14px;
+
+        margin-top: 22px;
+        margin-bottom: 27px;
+    }
+
+
+    .hero-search {
+
+        padding: 5px;
+    }
+
+
+    .hero-search input {
+
+        padding: 13px 7px;
+
+        font-size: 13px;
+    }
+
+
+    .hero-search button {
+
+        padding: 11px 13px;
+
+        font-size: 12px;
+    }
+
+
+    .search-icon {
+        padding-left: 8px;
+    }
+
+
+    .search-hint {
+        line-height: 2;
+    }
+
+
+    .stats-container {
+
+        width: 100%;
+
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    .stat-card {
+
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+
+    .stat-number {
+        font-size: 20px;
+    }
+
+
+    .section {
+        padding-top: 75px;
+    }
+
+
+    .section-heading {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 15px;
+    }
+
+
+    .word-card-main,
+    .word-card-side {
+
+        padding: 25px;
+    }
+
+
+    .word-top h3 {
+
+        font-size: 34px;
+    }
+
+
+    .cta-section {
+
+        width: calc(100% - 28px);
+
+        margin-top: 75px;
+
+        margin-bottom: 75px;
+
+        padding: 60px 20px;
+    }
+
+
+    .footer-container {
+
+        flex-direction: column;
+    }
+
+
+    .footer-links {
+
+        flex-wrap: wrap;
+
+        gap: 15px;
+    }
+
+}
+
+
+/* ================= SMALL PHONES ================= */
+
+@media (max-width: 380px) {
+
+    .hero h1 {
+        font-size: 42px;
+    }
+
+
+    .hero-search button {
+        padding: 10px;
+    }
+
+
+    .word-card-main,
+    .word-card-side {
+        padding: 20px;
+    }
+
+}
