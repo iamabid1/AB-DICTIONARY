@@ -398,14 +398,11 @@ function openWordDetails(word) {
 
 
             <button
-                class="word-action favorite-action"
-                onclick="toggleFavorite(
-                    '${escapeHTML(word.word || "")}'
-                )">
-
-                ☆ Favorite
-
-            </button>
+    class="word-action favorite-action"
+    onclick="toggleFavorite('${escapeHTML(word.word)}')"
+>
+    ${isFavorite(word.word) ? "★ Favorited" : "☆ Favorite"}
+</button>
 
         </div>
 
@@ -729,3 +726,82 @@ function escapeHTML(value) {
 /* ================= START ================= */
 
 loadWords();
+
+/* =====================================================
+   AB DICTIONARY
+   FAVORITES SYSTEM
+===================================================== */
+
+const FAVORITES_KEY = "abDictionaryFavorites";
+
+function getFavorites() {
+  try {
+    const saved = localStorage.getItem(FAVORITES_KEY);
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Could not load favorites:", error);
+
+    return [];
+  }
+}
+
+function saveFavorites(favorites) {
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+}
+
+/* ================= CHECK FAVORITE ================= */
+
+function isFavorite(word) {
+  const favorites = getFavorites();
+
+  return favorites.some((item) => item.toLowerCase() === word.toLowerCase());
+}
+
+/* ================= TOGGLE FAVORITE ================= */
+
+function toggleFavorite(word) {
+  let favorites = getFavorites();
+
+  const index = favorites.findIndex(
+    (item) => item.toLowerCase() === word.toLowerCase(),
+  );
+
+  if (index !== -1) {
+    // Remove
+    favorites.splice(index, 1);
+  } else {
+    // Add
+    favorites.push(word);
+  }
+
+  saveFavorites(favorites);
+
+  updateFavoriteButtons(word);
+}
+
+/* ================= UPDATE BUTTON ================= */
+
+function updateFavoriteButtons(word) {
+  const buttons = document.querySelectorAll(".favorite-action");
+
+  buttons.forEach((button) => {
+    const isSaved = isFavorite(word);
+
+    button.textContent = isSaved ? "★ Favorited" : "☆ Favorite";
+
+    button.classList.toggle("is-favorite", isSaved);
+  });
+}
+
+/* ================= INITIALIZE FAVORITE BUTTON ================= */
+
+function initializeFavoriteButton(word) {
+  updateFavoriteButtons(word);
+}

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>AB Dictionary — Data Manager V2</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #09090b;
+        color: #f4f4f5;
+        font-family: Inter, system-ui, Arial, sans-serif;
+        padding: 28px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: auto;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      h1 {
+        margin: 0;
+        font-size: 32px;
+      }
+      .muted {
+        color: #888;
+      }
+      .panel {
+        margin-top: 20px;
+        padding: 22px;
+        border: 1px solid #242428;
+        border-radius: 18px;
+        background: #111114;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+      .stat {
+        padding: 18px;
+        border: 1px solid #242428;
+        border-radius: 14px;
+        background: #0d0d10;
+      }
+      .num {
+        font-size: 27px;
+        font-weight: 800;
+      }
+      .label {
+        font-size: 12px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .good {
+        color: #4ade80;
+      }
+      .bad {
+        color: #f87171;
+      }
+      .warn {
+        color: #facc15;
+      }
+      input[type="file"] {
+        width: 100%;
+        padding: 15px;
+        border: 1px dashed #3a3a40;
+        border-radius: 12px;
+        background: #0d0d10;
+        color: #ddd;
+      }
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 15px;
+        background: #8b5cf6;
+        color: white;
+        font-weight: 750;
+        cursor: pointer;
+        margin: 6px 6px 0 0;
+      }
+      button.secondary {
+        background: #24242a;
+      }
+      button.danger {
+        background: #b91c1c;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 14px;
+      }
+      .notice {
+        padding: 13px 15px;
+        border-radius: 11px;
+        background: #18181b;
+        color: #aaa;
+        margin-top: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid #222;
+      }
+      th {
+        color: #aaa;
+      }
+      .scroll {
+        overflow: auto;
+        max-height: 360px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 7px;
+        border-radius: 7px;
+        background: #27272a;
+        color: #ccc;
+        font-size: 11px;
+      }
+      pre {
+        white-space: pre-wrap;
+        color: #bbb;
+        line-height: 1.55;
+      }
+      @media (max-width: 600px) {
+        body {
+          padding: 16px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>AB Dictionary</h1>
+          <div class="muted">
+            Data Manager V2 — audit, import, merge & export
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>1. Load Master Dictionary</h2>
+        <input id="masterFile" type="file" accept=".json" />
+        <div class="actions">
+          <button id="auditBtn" disabled>Run Full Audit</button>
+        </div>
+        <div id="masterStatus" class="notice">No master file loaded.</div>
+      </div>
+
+      <div class="panel">
+        <h2>2. Import New Word Batch</h2>
+        <div class="muted">
+          Upload another JSON array. It will be compared against the master
+          before anything is merged.
+        </div>
+        <input
+          id="batchFile"
+          type="file"
+          accept=".json"
+          style="margin-top: 12px"
+        />
+        <div class="actions">
+          <button id="previewBtn" disabled>Preview Import</button>
+          <button id="mergeBtn" disabled>Merge & Prepare Export</button>
+          <button id="downloadBtn" disabled>Download Clean words.json</button>
+        </div>
+        <div id="importStatus" class="notice">No new batch loaded.</div>
+      </div>
+
+      <div class="grid" id="stats"></div>
+
+      <div class="panel">
+        <h2>Audit Report</h2>
+        <pre id="report">Load your words.json to begin.</pre>
+      </div>
+
+      <div class="panel">
+        <h2>Import Preview</h2>
+        <div id="preview" class="muted">
+          Load a batch to see what will be added.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let master = [],
+        batch = [],
+        merged = null;
+      const REQUIRED = [
+        "id",
+        "word",
+        "partOfSpeech",
+        "meaning",
+        "bangla",
+        "pronunciation",
+        "example",
+        "synonyms",
+        "antonyms",
+        "difficulty",
+        "category",
+      ];
+      const DIFFICULTY = ["Easy", "Medium", "Hard", "Expert"];
+
+      const masterFile = document.getElementById("masterFile");
+      const batchFile = document.getElementById("batchFile");
+      const auditBtn = document.getElementById("auditBtn");
+      const previewBtn = document.getElementById("previewBtn");
+      const mergeBtn = document.getElementById("mergeBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const report = document.getElementById("report");
+      const preview = document.getElementById("preview");
+      const stats = document.getElementById("stats");
+
+      function parseJSON(file) {
+        return file.text().then((t) => {
+          const x = JSON.parse(t);
+          if (!Array.isArray(x))
+            throw new Error("JSON must be an array of word objects.");
+          return x;
+        });
+      }
+      function key(w) {
+        return String(w ?? "")
+          .trim()
+          .toLocaleLowerCase();
+      }
+      function audit(arr) {
+        const words = new Map(),
+          ids = new Map();
+        let dupWords = 0,
+          dupIds = 0,
+          missing = 0,
+          invalidDifficulty = 0,
+          invalidArrays = 0;
+        const details = [];
+        arr.forEach((w, i) => {
+          const k = key(w.word);
+          if (k) {
+            if (words.has(k)) {
+              dupWords++;
+              details.push(
+                `Duplicate word: ${w.word} (entries ${words.get(k) + 1} and ${i + 1})`,
+              );
+            } else words.set(k, i);
+          }
+          if (ids.has(String(w.id))) {
+            dupIds++;
+            details.push(
+              `Duplicate ID: ${w.id} (entries ${ids.get(String(w.id)) + 1} and ${i + 1})`,
+            );
+          } else ids.set(String(w.id), i);
+          REQUIRED.forEach((f) => {
+            if (w[f] === undefined || w[f] === null || w[f] === "") missing++;
+          });
+          if (!DIFFICULTY.includes(w.difficulty)) invalidDifficulty++;
+          if (!Array.isArray(w.synonyms) || !Array.isArray(w.antonyms))
+            invalidArrays++;
+        });
+        return {
+          total: arr.length,
+          unique: words.size,
+          dupWords,
+          dupIds,
+          missing,
+          invalidDifficulty,
+          invalidArrays,
+          details,
+        };
+      }
+      function showStats(a) {
+        stats.innerHTML = [
+          ["Total", a.total, ""],
+          ["Unique", a.unique, "good"],
+          ["Duplicate Words", a.dupWords, a.dupWords ? "bad" : "good"],
+          ["Duplicate IDs", a.dupIds, a.dupIds ? "bad" : "good"],
+          ["Missing Fields", a.missing, a.missing ? "warn" : "good"],
+          [
+            "Invalid Difficulty",
+            a.invalidDifficulty,
+            a.invalidDifficulty ? "warn" : "good",
+          ],
+        ]
+          .map(
+            (x) =>
+              `<div class="stat"><div class="num ${x[2]}">${x[1].toLocaleString()}</div><div class="label">${x[0]}</div></div>`,
+          )
+          .join("");
+      }
+      masterFile.onchange = async () => {
+        try {
+          master = await parseJSON(masterFile.files[0]);
+          auditBtn.disabled = false;
+          document.getElementById("masterStatus").innerHTML =
+            `Loaded <b>${master.length.toLocaleString()}</b> master entries.`;
+        } catch (e) {
+          master = [];
+          auditBtn.disabled = true;
+          document.getElementById("masterStatus").innerHTML =
+            `<span class="bad">${e.message}</span>`;
+        }
+      };
+      batchFile.onchange = async () => {
+        try {
+          batch = await parseJSON(batchFile.files[0]);
+          previewBtn.disabled = false;
+          document.getElementById("importStatus").innerHTML =
+            `Loaded <b>${batch.length.toLocaleString()}</b> candidate entries.`;
+        } catch (e) {
+          batch = [];
+          previewBtn.disabled = true;
+          mergeBtn.disabled = true;
+          document.getElementById("importStatus").innerHTML =
+            `<span class="bad">${e.message}</span>`;
+        }
+      };
+      auditBtn.onclick = () => {
+        const a = audit(master);
+        showStats(a);
+        report.textContent = `AB DICTIONARY DATA AUDIT
+────────────────────────
+Total entries: ${a.total.toLocaleString()}
+Unique words: ${a.unique.toLocaleString()}
+Duplicate words: ${a.dupWords}
+Duplicate IDs: ${a.dupIds}
+Missing required fields: ${a.missing}
+Invalid difficulty: ${a.invalidDifficulty}
+Invalid synonym/antonym arrays: ${a.invalidArrays}
+
+STATUS:
+${a.dupWords || a.dupIds || a.missing || a.invalidDifficulty || a.invalidArrays ? "⚠ DATA NEEDS ATTENTION" : "✓ MASTER DATA LOOKS HEALTHY"}
+
+${a.details.slice(0, 100).join("\\n")}`;
+      };
+      previewBtn.onclick = () => {
+        if (!master.length || !batch.length) return;
+        const existing = new Set(
+          master.map((x) => key(x.word)).filter(Boolean),
+        );
+        const seen = new Set(),
+          additions = [],
+          duplicates = [];
+        batch.forEach((w) => {
+          const k = key(w.word);
+          if (!k) {
+            duplicates.push({ w, reason: "Missing word" });
+            return;
+          }
+          if (existing.has(k) || seen.has(k)) {
+            duplicates.push({
+              w,
+              reason: "Already exists / duplicate in batch",
+            });
+            return;
+          }
+          seen.add(k);
+          additions.push(w);
+        });
+        const ba = audit(batch);
+        preview.innerHTML = `<div class="grid">
+    <div class="stat"><div class="num">${batch.length}</div><div class="label">Batch entries</div></div>
+    <div class="stat"><div class="num good">${additions.length}</div><div class="label">New unique words</div></div>
+    <div class="stat"><div class="num warn">${duplicates.length}</div><div class="label">Rejected duplicates</div></div>
+    <div class="stat"><div class="num ${ba.missing ? "warn" : "good"}">${ba.missing}</div><div class="label">Missing fields</div></div>
+  </div>
+  <div class="notice">Nothing has been changed. Preview only.</div>
+  <div class="scroll"><table><thead><tr><th>Word</th><th>Reason</th></tr></thead><tbody>${duplicates
+    .slice(0, 100)
+    .map(
+      (x) =>
+        `<tr><td>${escapeHtml(x.w.word || "(blank)")}</td><td><span class="badge">${escapeHtml(x.reason)}</span></td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
+        mergeBtn.disabled = false;
+      };
+      mergeBtn.onclick = () => {
+        if (!master.length || !batch.length) return;
+        const existing = new Set(
+          master.map((x) => key(x.word)).filter(Boolean),
+        );
+        const seen = new Set(existing),
+          additions = [];
+        batch.forEach((w) => {
+          const k = key(w.word);
+          if (k && !seen.has(k)) {
+            seen.add(k);
+            additions.push(w);
+          }
+        });
+        let next =
+          Math.max(
+            0,
+            ...master.map((x) => Number(x.id)).filter(Number.isFinite),
+          ) + 1;
+        const cleanAdditions = additions.map((w) => ({ ...w, id: next++ }));
+        merged = [...master, ...cleanAdditions];
+        // Final de-duplication by word while preserving the master copy.
+        const final = [],
+          finalWords = new Set();
+        merged.forEach((w) => {
+          const k = key(w.word);
+          if (k && !finalWords.has(k)) {
+            finalWords.add(k);
+            final.push(w);
+          }
+        });
+        merged = final.map((w, i) => ({ ...w, id: i + 1 }));
+        downloadBtn.disabled = false;
+        const a = audit(merged);
+        showStats(a);
+        report.textContent = `MERGE READY
+────────────────────────
+Master entries: ${master.length.toLocaleString()}
+Candidate entries: ${batch.length.toLocaleString()}
+Final entries: ${merged.length.toLocaleString()}
+New unique words added: ${(merged.length - master.length).toLocaleString()}
+Duplicates remaining: ${a.dupWords}
+Duplicate IDs remaining: ${a.dupIds}
+Missing required fields: ${a.missing}
+
+The master file has NOT been overwritten.
+Click "Download Clean words.json" to create the merged file.`;
+      };
+      downloadBtn.onclick = () => {
+        if (!merged) return;
+        const blob = new Blob([JSON.stringify(merged, null, 2)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "words.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      };
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#039;",
+            })[m],
+        );
+      }
+    </script>
+  </body>
+</html>

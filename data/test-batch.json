@@ -1,0 +1,28 @@
+[
+  {
+    "id": 9991,
+    "word": "Testword",
+    "partOfSpeech": "Noun",
+    "meaning": "A word used for testing.",
+    "bangla": "পরীক্ষামূলক শব্দ",
+    "pronunciation": "/testwɜːrd/",
+    "example": "This is a testword.",
+    "synonyms": ["sample"],
+    "antonyms": [],
+    "difficulty": "Easy",
+    "category": "General"
+  },
+  {
+    "id": 9992,
+    "word": "Meticulous",
+    "partOfSpeech": "Adjective",
+    "meaning": "Showing great attention to detail.",
+    "bangla": "খুঁটিনাটি বিষয়ে অত্যন্ত সতর্ক",
+    "pronunciation": "/məˈtɪkjələs/",
+    "example": "She is meticulous about her work.",
+    "synonyms": ["careful"],
+    "antonyms": ["careless"],
+    "difficulty": "Hard",
+    "category": "Personality"
+  }
+]
