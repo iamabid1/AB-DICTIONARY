@@ -1,522 +1,315 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <meta
-        name="description"
-        content="AB Dictionary — Learn English words with meanings, Bangla translations, examples, synonyms and more."
-    >
+      name="description"
+      content="AB Dictionary — Learn English words with meanings, Bangla translations, examples, synonyms and more."
+    />
 
     <title>AB Dictionary — Master Your Vocabulary</title>
 
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
 
     <script src="js/app.js" defer></script>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <!-- ================= NAVIGATION ================= -->
 
     <header class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">AB</span>
+          <span class="logo-text">Dictionary</span>
+        </a>
 
-        <div class="nav-container">
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link active"> Home </a>
 
-            <a href="index.html" class="logo">
-                <span class="logo-mark">AB</span>
-                <span class="logo-text">Dictionary</span>
-            </a>
+          <a href="dictionary.html" class="nav-link"> Dictionary </a>
 
+          <a href="learn.html" class="nav-link"> Learn </a>
 
-            <nav class="nav-links">
+          <a href="quiz.html" class="nav-link"> Quiz </a>
 
-                <a href="index.html" class="nav-link active">
-                    Home
-                </a>
+          <a href="favorites.html" class="nav-link"> Favorites </a>
+        </nav>
 
-                <a href="dictionary.html" class="nav-link">
-                    Dictionary
-                </a>
+        <div class="nav-actions">
+          <button
+            class="icon-button"
+            id="theme-toggle"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            ◐
+          </button>
 
-                <a href="learn.html" class="nav-link">
-                    Learn
-                </a>
-
-                <a href="quiz.html" class="nav-link">
-                    Quiz
-                </a>
-
-                <a href="favorites.html" class="nav-link">
-                    Favorites
-                </a>
-
-            </nav>
-
-
-            <div class="nav-actions">
-
-                <button
-                    class="icon-button"
-                    id="theme-toggle"
-                    aria-label="Toggle theme"
-                    title="Toggle theme"
-                >
-                    ◐
-                </button>
-
-                <button
-                    class="menu-button"
-                    id="menu-toggle"
-                    aria-label="Open menu"
-                >
-                    ☰
-                </button>
-
-            </div>
-
+          <button class="menu-button" id="menu-toggle" aria-label="Open menu">
+            ☰
+          </button>
         </div>
-
+      </div>
     </header>
-
 
     <!-- ================= MOBILE MENU ================= -->
 
     <div class="mobile-menu" id="mobile-menu">
-
-        <a href="index.html">Home</a>
-        <a href="dictionary.html">Dictionary</a>
-        <a href="learn.html">Learn</a>
-        <a href="quiz.html">Quiz</a>
-        <a href="favorites.html">Favorites</a>
-
+      <a href="index.html">Home</a>
+      <a href="dictionary.html">Dictionary</a>
+      <a href="learn.html">Learn</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="favorites.html">Favorites</a>
     </div>
 
-
     <main>
+      <!-- ================= HERO ================= -->
 
+      <section class="hero">
+        <div class="hero-glow"></div>
 
-        <!-- ================= HERO ================= -->
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="status-dot"></span>
+            Build your vocabulary
+          </div>
 
-        <section class="hero">
+          <h1>
+            Master English.
+            <span>One word at a time.</span>
+          </h1>
 
-            <div class="hero-glow"></div>
+          <p class="hero-description">
+            Discover thousands of English words with clear meanings, Bangla
+            translations, examples, synonyms and more.
+          </p>
 
-            <div class="hero-content">
+          <!-- SEARCH -->
 
-                <div class="hero-badge">
-                    <span class="status-dot"></span>
-                    Build your vocabulary
-                </div>
+          <div class="hero-search">
+            <span class="search-icon">⌕</span>
 
+            <input
+              type="text"
+              id="home-search"
+              placeholder="Search a word..."
+              autocomplete="off"
+            />
 
-                <h1>
-                    Master English.
-                    <span>One word at a time.</span>
-                </h1>
+            <button id="search-button">Search</button>
+          </div>
 
+          <div class="search-hint">
+            Try
+            <button class="example-word">meticulous</button>,
+            <button class="example-word">ephemeral</button>
+            or
+            <button class="example-word">benevolent</button>
+          </div>
+        </div>
+      </section>
 
-                <p class="hero-description">
-                    Discover thousands of English words with clear meanings,
-                    Bangla translations, examples, synonyms and more.
-                </p>
+      <!-- ================= STATS ================= -->
 
+      <section class="stats-section">
+        <div class="stats-container">
+          <div class="stat-card">
+            <span class="stat-number" id="word-count">—</span>
+            <span class="stat-label"> English Words </span>
+          </div>
 
-                <!-- SEARCH -->
+          <div class="stat-card">
+            <span class="stat-number" id="category-count">—</span>
+            <span class="stat-label"> Categories </span>
+          </div>
 
-                <div class="hero-search">
+          <div class="stat-card">
+            <span class="stat-number">5</span>
 
-                    <span class="search-icon">⌕</span>
+            <span class="stat-label"> Difficulty Levels </span>
+          </div>
 
-                    <input
-                        type="text"
-                        id="home-search"
-                        placeholder="Search a word..."
-                        autocomplete="off"
-                    >
+          <div class="stat-card">
+            <span class="stat-number">∞</span>
 
-                    <button id="search-button">
-                        Search
-                    </button>
+            <span class="stat-label"> Learning Potential </span>
+          </div>
+        </div>
+      </section>
 
-                </div>
+      <!-- ================= WORD OF THE DAY ================= -->
 
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label"> DAILY VOCABULARY </span>
 
-                <div class="search-hint">
-                    Try
-                    <button class="example-word">meticulous</button>,
-                    <button class="example-word">ephemeral</button>
-                    or
-                    <button class="example-word">benevolent</button>
-                </div>
+            <h2>Word of the Day</h2>
+          </div>
 
+          <a href="dictionary.html" class="text-link"> Explore dictionary → </a>
+        </div>
+
+        <article class="word-card">
+          <div class="word-card-main">
+            <div class="word-top">
+              <div>
+                <span class="word-difficulty"> ADVANCED </span>
+
+                <h3>Meticulous</h3>
+
+                <span class="pronunciation"> /məˈtɪkjələs/ </span>
+              </div>
+
+              <button class="favorite-button" aria-label="Add to favorites">
+                ☆
+              </button>
             </div>
 
-        </section>
+            <div class="word-meaning">
+              <span class="meaning-label"> ENGLISH MEANING </span>
 
-
-        <!-- ================= STATS ================= -->
-
-        <section class="stats-section">
-
-            <div class="stats-container">
-
-                <div class="stat-card">
-
-                    <span class="stat-number">5,000+</span>
-
-                    <span class="stat-label">
-                        English Words
-                    </span>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <span class="stat-number">10+</span>
-
-                    <span class="stat-label">
-                        Categories
-                    </span>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <span class="stat-number">5</span>
-
-                    <span class="stat-label">
-                        Difficulty Levels
-                    </span>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <span class="stat-number">∞</span>
-
-                    <span class="stat-label">
-                        Learning Potential
-                    </span>
-
-                </div>
-
+              <p>
+                Showing great attention to detail; very careful and precise.
+              </p>
             </div>
 
-        </section>
+            <div class="word-bangla">
+              <span class="meaning-label"> বাংলা অর্থ </span>
 
-
-        <!-- ================= WORD OF THE DAY ================= -->
-
-        <section class="section">
-
-            <div class="section-heading">
-
-                <div>
-                    <span class="section-label">
-                        DAILY VOCABULARY
-                    </span>
-
-                    <h2>
-                        Word of the Day
-                    </h2>
-                </div>
-
-                <a href="dictionary.html" class="text-link">
-                    Explore dictionary →
-                </a>
-
+              <p>অত্যন্ত যত্নশীল; খুঁটিনাটি বিষয়ে সতর্ক</p>
             </div>
 
+            <div class="word-example">
+              <span class="meaning-label"> EXAMPLE </span>
 
-            <article class="word-card">
+              <p>“She is meticulous about every detail of her work.”</p>
+            </div>
+          </div>
 
-                <div class="word-card-main">
+          <div class="word-card-side">
+            <div class="side-title">SYNONYMS</div>
 
-                    <div class="word-top">
-
-                        <div>
-
-                            <span class="word-difficulty">
-                                ADVANCED
-                            </span>
-
-                            <h3>
-                                Meticulous
-                            </h3>
-
-                            <span class="pronunciation">
-                                /məˈtɪkjələs/
-                            </span>
-
-                        </div>
-
-
-                        <button
-                            class="favorite-button"
-                            aria-label="Add to favorites"
-                        >
-                            ☆
-                        </button>
-
-                    </div>
-
-
-                    <div class="word-meaning">
-
-                        <span class="meaning-label">
-                            ENGLISH MEANING
-                        </span>
-
-                        <p>
-                            Showing great attention to detail;
-                            very careful and precise.
-                        </p>
-
-                    </div>
-
-
-                    <div class="word-bangla">
-
-                        <span class="meaning-label">
-                            বাংলা অর্থ
-                        </span>
-
-                        <p>
-                            অত্যন্ত যত্নশীল; খুঁটিনাটি বিষয়ে সতর্ক
-                        </p>
-
-                    </div>
-
-
-                    <div class="word-example">
-
-                        <span class="meaning-label">
-                            EXAMPLE
-                        </span>
-
-                        <p>
-                            “She is meticulous about every detail
-                            of her work.”
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="word-card-side">
-
-                    <div class="side-title">
-                        SYNONYMS
-                    </div>
-
-                    <div class="tag-list">
-
-                        <span class="tag">Careful</span>
-                        <span class="tag">Precise</span>
-                        <span class="tag">Thorough</span>
-
-                    </div>
-
-
-                    <div class="side-title">
-                        ANTONYMS
-                    </div>
-
-                    <div class="tag-list">
-
-                        <span class="tag">Careless</span>
-                        <span class="tag">Negligent</span>
-
-                    </div>
-
-
-                    <a href="word.html?word=meticulous"
-                       class="learn-button">
-                        Explore Word
-                        <span>→</span>
-                    </a>
-
-                </div>
-
-            </article>
-
-        </section>
-
-
-        <!-- ================= FEATURES ================= -->
-
-        <section class="section features-section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <span class="section-label">
-                        WHY AB DICTIONARY
-                    </span>
-
-                    <h2>
-                        More than just a dictionary.
-                    </h2>
-
-                </div>
-
+            <div class="tag-list">
+              <span class="tag">Careful</span>
+              <span class="tag">Precise</span>
+              <span class="tag">Thorough</span>
             </div>
 
+            <div class="side-title">ANTONYMS</div>
 
-            <div class="features-grid">
-
-                <article class="feature-card">
-
-                    <div class="feature-icon">
-                        🔎
-                    </div>
-
-                    <h3>
-                        Powerful Search
-                    </h3>
-
-                    <p>
-                        Quickly find the word you're looking for
-                        from thousands of entries.
-                    </p>
-
-                </article>
-
-
-                <article class="feature-card">
-
-                    <div class="feature-icon">
-                        🇧🇩
-                    </div>
-
-                    <h3>
-                        Bangla Meanings
-                    </h3>
-
-                    <p>
-                        Understand difficult English words
-                        with clear Bangla translations.
-                    </p>
-
-                </article>
-
-
-                <article class="feature-card">
-
-                    <div class="feature-icon">
-                        🧠
-                    </div>
-
-                    <h3>
-                        Learn & Practice
-                    </h3>
-
-                    <p>
-                        Save words, learn daily vocabulary
-                        and test yourself with quizzes.
-                    </p>
-
-                </article>
-
+            <div class="tag-list">
+              <span class="tag">Careless</span>
+              <span class="tag">Negligent</span>
             </div>
 
-        </section>
+            <a href="word.html?word=meticulous" class="learn-button">
+              Explore Word
+              <span>→</span>
+            </a>
+          </div>
+        </article>
+      </section>
 
+      <!-- ================= FEATURES ================= -->
 
-        <!-- ================= CTA ================= -->
+      <section class="section features-section">
+        <div class="section-heading">
+          <div>
+            <span class="section-label"> WHY AB DICTIONARY </span>
 
-        <section class="cta-section">
+            <h2>More than just a dictionary.</h2>
+          </div>
+        </div>
 
-            <div class="cta-content">
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-icon">🔎</div>
 
-                <span class="section-label">
-                    START LEARNING
-                </span>
+            <h3>Powerful Search</h3>
 
-                <h2>
-                    Ready to build a stronger vocabulary?
-                </h2>
+            <p>
+              Quickly find the word you're looking for from thousands of
+              entries.
+            </p>
+          </article>
 
-                <p>
-                    Explore thousands of carefully selected
-                    English words.
-                </p>
+          <article class="feature-card">
+            <div class="feature-icon">🇧🇩</div>
 
-                <a href="dictionary.html" class="cta-button">
-                    Explore Dictionary
-                    <span>→</span>
-                </a>
+            <h3>Bangla Meanings</h3>
 
-            </div>
+            <p>
+              Understand difficult English words with clear Bangla translations.
+            </p>
+          </article>
 
-        </section>
+          <article class="feature-card">
+            <div class="feature-icon">🧠</div>
 
+            <h3>Learn & Practice</h3>
+
+            <p>
+              Save words, learn daily vocabulary and test yourself with quizzes.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= CTA ================= -->
+
+      <section class="cta-section">
+        <div class="cta-content">
+          <span class="section-label"> START LEARNING </span>
+
+          <h2>Ready to build a stronger vocabulary?</h2>
+
+          <p>Explore thousands of carefully selected English words.</p>
+
+          <a href="dictionary.html" class="cta-button">
+            Explore Dictionary
+            <span>→</span>
+          </a>
+        </div>
+      </section>
     </main>
-
 
     <!-- ================= FOOTER ================= -->
 
     <footer class="footer">
+      <div class="footer-container">
+        <div>
+          <a href="index.html" class="logo">
+            <span class="logo-mark">AB</span>
+            <span class="logo-text">Dictionary</span>
+          </a>
 
-        <div class="footer-container">
-
-            <div>
-
-                <a href="index.html" class="logo">
-                    <span class="logo-mark">AB</span>
-                    <span class="logo-text">Dictionary</span>
-                </a>
-
-                <p class="footer-description">
-                    A modern English vocabulary platform
-                    for better learning.
-                </p>
-
-            </div>
-
-
-            <div class="footer-links">
-
-                <a href="dictionary.html">
-                    Dictionary
-                </a>
-
-                <a href="learn.html">
-                    Learn
-                </a>
-
-                <a href="quiz.html">
-                    Quiz
-                </a>
-
-                <a href="about.html">
-                    About
-                </a>
-
-            </div>
-
+          <p class="footer-description">
+            A modern English vocabulary platform for better learning.
+          </p>
         </div>
 
+        <div class="footer-links">
+          <a href="dictionary.html"> Dictionary </a>
 
-        <div class="footer-bottom">
+          <a href="learn.html"> Learn </a>
 
-            © 2026 AB Dictionary.
-            Built for better vocabulary.
+          <a href="quiz.html"> Quiz </a>
 
+          <a href="about.html"> About </a>
         </div>
+      </div>
 
+      <div class="footer-bottom">
+        © 2026 AB Dictionary. Built for better vocabulary.
+      </div>
     </footer>
-
-</body>
+  </body>
 </html>

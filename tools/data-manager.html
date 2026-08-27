@@ -77,6 +77,9 @@
         background: #0d0d10;
         color: #ddd;
       }
+      .batch-file {
+        margin-top: 12px;
+      }
       button {
         border: 0;
         border-radius: 10px;
@@ -165,6 +168,7 @@
 
       <div class="panel">
         <h2>1. Load Master Dictionary</h2>
+        <label for="masterFile" class="muted">Master words.json</label>
         <input id="masterFile" type="file" accept=".json" />
         <div class="actions">
           <button id="auditBtn" disabled>Run Full Audit</button>
@@ -178,12 +182,8 @@
           Upload another JSON array. It will be compared against the master
           before anything is merged.
         </div>
-        <input
-          id="batchFile"
-          type="file"
-          accept=".json"
-          style="margin-top: 12px"
-        />
+        <label for="batchFile" class="muted">New word batch</label>
+        <input id="batchFile" class="batch-file" type="file" accept=".json" />
         <div class="actions">
           <button id="previewBtn" disabled>Preview Import</button>
           <button id="mergeBtn" disabled>Merge & Prepare Export</button>

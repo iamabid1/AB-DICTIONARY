@@ -56,6 +56,8 @@ async function loadWords() {
     readURLSearch();
 
     applyFilters();
+
+    renderRecentlyViewed();
   } catch (error) {
     console.error("Dictionary loading error:", error);
 
@@ -193,6 +195,7 @@ const wordBackdrop = document.getElementById("word-backdrop");
 /* ================= OPEN WORD ================= */
 
 function openWordDetails(word) {
+  saveRecentlyViewed(word.word);
   wordPanelContent.innerHTML = `
 
         <div class="word-detail-header">
@@ -413,6 +416,7 @@ function openWordDetails(word) {
   wordOverlay.setAttribute("aria-hidden", "false");
 
   document.body.classList.add("panel-open");
+  renderRecentlyViewed();
 }
 
 /* ================= CLOSE ================= */
@@ -805,3 +809,168 @@ function updateFavoriteButtons(word) {
 function initializeFavoriteButton(word) {
   updateFavoriteButtons(word);
 }
+
+/* =====================================================
+   RANDOM WORD
+===================================================== */
+
+const randomWordButton = document.getElementById("random-word-button");
+
+if (randomWordButton) {
+  randomWordButton.addEventListener("click", () => {
+    if (!allWords.length) {
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * allWords.length);
+
+    const randomWord = allWords[randomIndex];
+
+    if (!randomWord) {
+      return;
+    }
+
+    openWordDetails(randomWord);
+  });
+}
+
+/* =====================================================
+   RECENTLY VIEWED
+===================================================== */
+
+const RECENTLY_VIEWED_KEY = "abDictionaryRecentlyViewed";
+
+const MAX_RECENTLY_VIEWED = 10;
+
+/* ================= GET ================= */
+
+function getRecentlyViewed() {
+  try {
+    const saved = localStorage.getItem(RECENTLY_VIEWED_KEY);
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Could not load recently viewed:", error);
+
+    return [];
+  }
+}
+
+/* ================= SAVE ================= */
+
+function saveRecentlyViewed(word) {
+  if (!word) {
+    return;
+  }
+
+  let recent = getRecentlyViewed();
+
+  // Remove the word if it already exists
+  recent = recent.filter((item) => item.toLowerCase() !== word.toLowerCase());
+
+  // Put newest word at the beginning
+  recent.unshift(word);
+
+  // Keep only the latest 10
+  recent = recent.slice(0, MAX_RECENTLY_VIEWED);
+
+  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(recent));
+}
+
+/* =====================================================
+   RECENTLY VIEWED UI
+===================================================== */
+
+const recentSection = document.getElementById("recent-section");
+
+const recentList = document.getElementById("recent-list");
+
+const clearRecentButton = document.getElementById("clear-recent");
+
+/* ================= RENDER ================= */
+
+function renderRecentlyViewed() {
+  if (!recentSection || !recentList) {
+    return;
+  }
+
+  const recent = getRecentlyViewed();
+
+  /* Hide section if empty */
+
+  if (recent.length === 0) {
+    recentSection.style.display = "none";
+
+    return;
+  }
+
+  recentSection.style.display = "";
+
+  recentList.innerHTML = "";
+
+  recent.forEach((recentWordName) => {
+    const word = allWords.find(
+      (item) => item.word.toLowerCase() === recentWordName.toLowerCase(),
+    );
+
+    if (!word) {
+      return;
+    }
+
+    const card = document.createElement("button");
+
+    card.type = "button";
+
+    card.className = "recent-word-card";
+
+    card.innerHTML = `
+
+        <span class="recent-word">
+
+          ${escapeHTML(word.word || "")}
+
+        </span>
+
+
+        <span class="recent-part">
+
+          ${escapeHTML(word.partOfSpeech || "")}
+
+        </span>
+
+
+        <span class="recent-bangla">
+
+          ${escapeHTML(word.bangla || "")}
+
+        </span>
+
+      `;
+
+    card.addEventListener("click", () => {
+      openWordDetails(word);
+    });
+
+    recentList.appendChild(card);
+  });
+}
+
+/* ================= CLEAR ================= */
+
+if (clearRecentButton) {
+  clearRecentButton.addEventListener("click", () => {
+    localStorage.removeItem(RECENTLY_VIEWED_KEY);
+
+    renderRecentlyViewed();
+  });
+}
+
+// /* ================= START ================= */
+
+// setTimeout(renderRecentlyViewed, 100);
