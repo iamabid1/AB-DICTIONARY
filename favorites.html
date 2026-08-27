@@ -5,490 +5,456 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>My Favorites — AB Dictionary</title>
+    <meta
+      name="description"
+      content="Your saved English vocabulary on AB Dictionary."
+    />
+
+    <title>Favorites — AB Dictionary</title>
+
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+    <link rel="stylesheet" href="css/style.css" />
+
+    <link rel="stylesheet" href="css/responsive.css" />
 
     <style>
-      * {
-        box-sizing: border-box;
+      /* =====================================================
+       FAVORITES PAGE
+    ===================================================== */
+
+      .favorites-page {
+        padding: 90px 0 120px;
       }
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-
-        background: radial-gradient(
-          circle at top,
-          #202024 0%,
-          #0b0b0d 45%,
-          #080809 100%
-        );
-
-        color: #f5f5f5;
-
-        font-family:
-          Inter,
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
+      .favorites-header {
+        max-width: 750px;
+        margin: 0 auto 50px;
+        text-align: center;
       }
 
-      .container {
-        width: min(1100px, calc(100% - 32px));
-
-        margin: auto;
-
-        padding: 45px 0 70px;
+      .favorites-header h1 {
+        margin-top: 12px;
+        margin-bottom: 16px;
+        font-size: clamp(42px, 6vw, 64px);
+        line-height: 1;
+        letter-spacing: -3px;
       }
 
-      .back {
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 8px;
-
-        color: #999;
-
-        text-decoration: none;
-
-        font-size: 14px;
-
-        margin-bottom: 30px;
-
-        transition:
-          color 0.2s ease,
-          transform 0.2s ease;
+      .favorites-header p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.7;
       }
 
-      .back:hover {
-        color: white;
+      /* =====================================================
+       FAVORITE STATS
+    ===================================================== */
 
-        transform: translateX(-3px);
-      }
-
-      .eyebrow {
-        color: #8b5cf6;
-
-        font-size: 12px;
-
-        font-weight: 800;
-
-        letter-spacing: 2px;
-
-        text-transform: uppercase;
-      }
-
-      h1 {
-        margin: 8px 0 8px;
-
-        font-size: clamp(34px, 6vw, 58px);
-
-        letter-spacing: -2px;
-      }
-
-      .subtitle {
-        color: #888;
-
-        font-size: 16px;
-      }
-
-      .favorites-grid {
-        display: grid;
-
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-
-        gap: 16px;
-
-        margin-top: 35px;
-      }
-
-      .favorite-card {
-        position: relative;
-
-        padding: 23px;
-
-        border: 1px solid rgba(255, 255, 255, 0.08);
-
-        border-radius: 18px;
-
-        background: rgba(255, 255, 255, 0.035);
-
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-
-        transition:
-          transform 0.25s ease,
-          border-color 0.25s ease;
-      }
-
-      .favorite-card:hover {
-        transform: translateY(-5px);
-
-        border-color: rgba(139, 92, 246, 0.45);
-      }
-
-      .card-top {
-        display: flex;
-
-        align-items: flex-start;
-
-        justify-content: space-between;
-
-        gap: 15px;
-      }
-
-      .word {
-        margin: 0;
-
-        font-size: 27px;
-      }
-
-      .part {
-        display: inline-block;
-
-        margin-top: 7px;
-
-        color: #8b5cf6;
-
-        font-size: 12px;
-
+      .favorite-stat {
+        width: fit-content;
+        margin: 25px auto 0;
+        padding: 9px 14px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--surface);
+        color: var(--text-secondary);
+        font-size: 11px;
         font-weight: 700;
+        letter-spacing: 0.5px;
       }
 
-      .remove {
-        border: 0;
+      .favorite-stat span {
+        color: var(--accent-light);
+      }
 
-        background: rgba(255, 255, 255, 0.06);
+      /* =====================================================
+       FAVORITES TOOLBAR
+    ===================================================== */
 
-        color: #aaa;
+      .favorites-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 18px;
+      }
 
-        width: 34px;
+      .favorites-count {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
 
-        height: 34px;
-
-        border-radius: 50%;
-
+      .clear-favorites {
+        padding: 9px 13px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 11px;
         cursor: pointer;
-
-        font-size: 17px;
-
         transition: 0.2s ease;
       }
 
-      .remove:hover {
-        color: white;
-
-        background: rgba(239, 68, 68, 0.2);
+      .clear-favorites:hover {
+        color: var(--text);
+        border-color: var(--accent);
+        transform: translateY(-1px);
       }
 
-      .meaning {
-        margin: 20px 0 8px;
+      /* =====================================================
+       FAVORITE GRID
+    ===================================================== */
 
-        color: #ddd;
-
-        line-height: 1.6;
+      .favorites-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
       }
 
-      .bangla {
-        margin: 0;
+      /* =====================================================
+       FAVORITE CARD
+    ===================================================== */
 
-        color: #aaa;
+      .favorite-card {
+        position: relative;
+        padding: 22px;
+        border-radius: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        cursor: pointer;
 
-        line-height: 1.6;
+        transition:
+          transform 0.25s ease,
+          background 0.25s ease,
+          border-color 0.25s ease;
+
+        animation: favoriteCardIn 0.35s ease both;
       }
 
-      .difficulty {
-        display: inline-block;
+      .favorite-card:hover {
+        transform: translateY(-3px);
+        background: var(--surface-2);
+        border-color: rgba(139, 92, 246, 0.4);
+      }
 
-        margin-top: 18px;
+      .favorite-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+      }
 
-        padding: 5px 9px;
+      .favorite-word {
+        margin-bottom: 5px;
+        color: var(--text);
+        font-size: 21px;
+        letter-spacing: -0.5px;
+      }
 
+      .favorite-part {
+        color: var(--accent-light);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .favorite-remove {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
         border-radius: 8px;
-
-        background: rgba(255, 255, 255, 0.06);
-
-        color: #aaa;
-
-        font-size: 11px;
-
-        font-weight: 700;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.2s ease;
       }
 
-      .empty {
-        margin-top: 35px;
-
-        padding: 70px 20px;
-
-        text-align: center;
-
-        border: 1px dashed #333;
-
-        border-radius: 20px;
-
-        color: #888;
-      }
-
-      .empty-icon {
-        font-size: 45px;
-
-        margin-bottom: 15px;
-      }
-
-      .empty h2 {
-        margin: 0 0 8px;
-
-        color: #ddd;
-      }
-
-      .empty p {
-        margin: 0 0 22px;
-      }
-
-      .browse {
-        display: inline-block;
-
-        padding: 11px 18px;
-
-        border-radius: 10px;
-
-        background: #8b5cf6;
-
+      .favorite-remove:hover {
+        background: var(--accent);
+        border-color: var(--accent);
         color: white;
+      }
 
-        text-decoration: none;
+      .favorite-meaning {
+        margin-top: 14px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.6;
+      }
 
+      .favorite-bangla {
+        margin-top: 9px;
+        color: var(--text);
+        font-size: 13px;
+      }
+
+      .favorite-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 13px;
+        border-top: 1px solid var(--border);
+      }
+
+      .favorite-difficulty {
+        color: var(--accent-light);
+        font-size: 9px;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+      }
+
+      .favorite-view {
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      /* =====================================================
+       EMPTY STATE
+    ===================================================== */
+
+      .favorites-empty {
+        padding: 80px 25px;
+        text-align: center;
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+      }
+
+      .favorites-empty-icon {
+        margin-bottom: 15px;
+        font-size: 38px;
+      }
+
+      .favorites-empty h2 {
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 22px;
+      }
+
+      .favorites-empty p {
+        max-width: 450px;
+        margin: 0 auto 22px;
+        color: var(--text-muted);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .favorites-empty a {
+        display: inline-block;
+        padding: 11px 17px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        transition: 0.2s ease;
+      }
+
+      .favorites-empty a:hover {
+        transform: translateY(-2px);
+      }
+
+      /* =====================================================
+       ANIMATION
+    ===================================================== */
+
+      @keyframes favoriteCardIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* =====================================================
+       MOBILE
+    ===================================================== */
+
+      @media (max-width: 700px) {
+        .favorites-page {
+          padding-top: 60px;
+        }
+
+        .favorites-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .favorites-toolbar {
+          align-items: flex-start;
+        }
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <a href="dictionary.html" class="back"> ← Back to Dictionary </a>
+    <!-- =====================================================
+       NAVBAR
+  ===================================================== -->
 
-      <div class="eyebrow">AB DICTIONARY</div>
+    <header class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-mark"> AB </span>
 
-      <h1>My Favorites ⭐</h1>
+          <span class="logo-text"> Dictionary </span>
+        </a>
 
-      <div class="subtitle" id="stats">Loading favorites...</div>
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link"> Home </a>
 
-      <main id="favorites" class="favorites-grid"></main>
+          <a href="dictionary.html" class="nav-link"> Dictionary </a>
+
+          <a href="learn.html" class="nav-link"> Learn </a>
+
+          <a href="quiz.html" class="nav-link"> Quiz </a>
+
+          <a href="favorites.html" class="nav-link active"> Favorites </a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="icon-button" id="theme-toggle" type="button">◐</button>
+
+          <button class="menu-button" id="menu-toggle" type="button">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+       MOBILE MENU
+  ===================================================== -->
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html"> Home </a>
+
+      <a href="dictionary.html"> Dictionary </a>
+
+      <a href="learn.html"> Learn </a>
+
+      <a href="quiz.html"> Quiz </a>
+
+      <a href="favorites.html"> Favorites </a>
     </div>
 
-    <script>
-      const FAVORITES_KEY = "abDictionaryFavorites";
+    <!-- =====================================================
+       MAIN
+  ===================================================== -->
 
-      const container = document.getElementById("favorites");
+    <main>
+      <section class="favorites-page">
+        <div class="section">
+          <!-- =================================================
+             HEADER
+        ================================================= -->
 
-      const stats = document.getElementById("stats");
+          <div class="favorites-header">
+            <span class="section-label"> YOUR VOCABULARY </span>
 
-      let allWords = [];
+            <h1>Favorite Words.</h1>
 
-      /* ================= LOAD DICTIONARY ================= */
+            <p>Keep the words you want to remember, revisit and learn.</p>
 
-      async function loadWords() {
-        try {
-          const response = await fetch("data/words.json");
-
-          if (!response.ok) {
-            throw new Error("Could not load words.json");
-          }
-
-          allWords = await response.json();
-
-          renderFavorites();
-        } catch (error) {
-          console.error(error);
-
-          container.innerHTML = `
-
-            <div class="empty">
-
-                <div class="empty-icon">
-                    ⚠️
-                </div>
-
-                <h2>
-                    Unable to load dictionary
-                </h2>
-
-                <p>
-                    Make sure
-                    data/words.json
-                    exists.
-                </p>
-
+            <div class="favorite-stat">
+              ★
+              <span id="favorite-total"> 0 </span>
+              SAVED WORDS
             </div>
+          </div>
 
-        `;
-        }
-      }
+          <!-- =================================================
+             TOOLBAR
+        ================================================= -->
 
-      /* ================= GET FAVORITES ================= */
+          <div class="favorites-toolbar" id="favorites-toolbar">
+            <span class="favorites-count" id="favorites-count">
+              0 saved words
+            </span>
 
-      function getFavorites() {
-        try {
-          const saved = localStorage.getItem(FAVORITES_KEY);
+            <button class="clear-favorites" id="clear-favorites" type="button">
+              Clear all
+            </button>
+          </div>
 
-          if (!saved) {
-            return [];
-          }
+          <!-- =================================================
+             FAVORITES
+        ================================================= -->
 
-          const parsed = JSON.parse(saved);
+          <div class="favorites-grid" id="favorites-grid"></div>
 
-          return Array.isArray(parsed) ? parsed : [];
-        } catch {
-          return [];
-        }
-      }
+          <!-- =================================================
+             EMPTY STATE
+        ================================================= -->
 
-      /* ================= SAVE ================= */
+          <div
+            class="favorites-empty"
+            id="favorites-empty"
+            style="display: none"
+          >
+            <div class="favorites-empty-icon">☆</div>
 
-      function saveFavorites(favorites) {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-      }
+            <h2>No favorite words yet.</h2>
 
-      /* ================= RENDER ================= */
+            <p>
+              When you find a word you want to remember, open it and press
+              <strong>☆ Favorite</strong>. It will appear here.
+            </p>
 
-      function renderFavorites() {
-        const saved = getFavorites();
+            <a href="dictionary.html"> Explore Dictionary </a>
+          </div>
+        </div>
+      </section>
+    </main>
 
-        const savedSet = new Set(saved.map((word) => word.toLowerCase()));
+    <!-- =====================================================
+       FOOTER
+  ===================================================== -->
 
-        const favoriteWords = allWords.filter((word) =>
-          savedSet.has(word.word.toLowerCase()),
-        );
+    <footer class="footer">
+      <div class="footer-container">
+        <div>
+          <a href="index.html" class="logo">
+            <span class="logo-mark"> AB </span>
 
-        stats.textContent = `${favoriteWords.length} ${
-          favoriteWords.length === 1 ? "word" : "words"
-        } saved`;
+            <span class="logo-text"> Dictionary </span>
+          </a>
 
-        if (favoriteWords.length === 0) {
-          container.innerHTML = `
+          <p class="footer-description">
+            A modern English vocabulary platform for better learning.
+          </p>
+        </div>
 
-            <div class="empty">
+        <div class="footer-links">
+          <a href="dictionary.html"> Dictionary </a>
 
-                <div class="empty-icon">
-                    ☆
-                </div>
+          <a href="learn.html"> Learn </a>
 
-                <h2>
-                    No favorites yet
-                </h2>
+          <a href="quiz.html"> Quiz </a>
 
-                <p>
-                    Open a word and tap
-                    "Favorite" to save it here.
-                </p>
+          <a href="about.html"> About </a>
+        </div>
+      </div>
 
-                <a
-                    href="dictionary.html"
-                    class="browse"
-                >
-                    Explore Dictionary →
-                </a>
+      <div class="footer-bottom">
+        © 2026 AB Dictionary. Built for better vocabulary.
+      </div>
+    </footer>
 
-            </div>
+    <!-- =====================================================
+       JAVASCRIPT
+  ===================================================== -->
 
-        `;
+    <script src="js/app.js"></script>
 
-          return;
-        }
-
-        container.innerHTML = favoriteWords
-          .map(
-            (word) => `
-
-                <article
-                    class="favorite-card"
-                >
-
-                    <div class="card-top">
-
-                        <div>
-
-                            <h2 class="word">
-                                ${escapeHTML(word.word)}
-                            </h2>
-
-                            <span class="part">
-                                ${escapeHTML(word.partOfSpeech)}
-                            </span>
-
-                        </div>
-
-
-                        <button
-                            class="remove"
-                            title="Remove favorite"
-                            onclick="
-                                removeFavorite(
-                                    '${escapeAttribute(word.word)}'
-                                )
-                            "
-                        >
-                            ★
-                        </button>
-
-                    </div>
-
-
-                    <p class="meaning">
-                        ${escapeHTML(word.meaning)}
-                    </p>
-
-
-                    <p class="bangla">
-                        ${escapeHTML(word.bangla)}
-                    </p>
-
-
-                    <span class="difficulty">
-                        ${escapeHTML(word.difficulty)}
-                    </span>
-
-                </article>
-
-            `,
-          )
-          .join("");
-      }
-
-      /* ================= REMOVE ================= */
-
-      function removeFavorite(word) {
-        const favorites = getFavorites();
-
-        const updated = favorites.filter(
-          (item) => item.toLowerCase() !== word.toLowerCase(),
-        );
-
-        saveFavorites(updated);
-
-        renderFavorites();
-      }
-
-      /* ================= HTML SAFETY ================= */
-
-      function escapeHTML(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function escapeAttribute(value) {
-        return String(value).replaceAll("\\", "\\\\").replaceAll("'", "\\'");
-      }
-
-      /* ================= START ================= */
-
-      loadWords();
-    </script>
+    <script src="js/favorites.js"></script>
   </body>
 </html>

@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="Test your English vocabulary with AB Dictionary Quiz."
+    />
+
+    <title>Quiz — AB Dictionary</title>
+
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+
+    <style>
+      /* =====================================================
+       AB DICTIONARY
+       QUIZ PAGE
+    ===================================================== */
+
+      .quiz-page {
+        padding: 90px 0 120px;
+      }
+
+      .quiz-header {
+        max-width: 760px;
+        margin: 0 auto 45px;
+        text-align: center;
+      }
+
+      .quiz-header h1 {
+        font-size: clamp(42px, 6vw, 64px);
+        line-height: 1;
+        letter-spacing: -3px;
+        margin: 15px 0 20px;
+      }
+
+      .quiz-header p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        font-size: 15px;
+      }
+
+      /* =====================================================
+       SETUP
+    ===================================================== */
+
+      .quiz-setup {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 30px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+
+      .quiz-setup h2 {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+
+      .quiz-setup-description {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 25px;
+      }
+
+      .quiz-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .quiz-option {
+        padding: 17px;
+        text-align: left;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .quiz-option:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      .quiz-option.active {
+        background: rgba(139, 92, 246, 0.12);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+
+      .quiz-option strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text);
+      }
+
+      .quiz-option span {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .start-quiz-button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 15px;
+        border: none;
+        border-radius: 11px;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .start-quiz-button:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+      }
+
+      /* =====================================================
+       QUIZ CARD
+    ===================================================== */
+
+      .quiz-container {
+        display: none;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .quiz-container.active {
+        display: block;
+      }
+
+      .quiz-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 12px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .quiz-score {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .quiz-progress {
+        width: 100%;
+        height: 7px;
+        border-radius: 20px;
+        background: var(--surface);
+        overflow: hidden;
+        margin-bottom: 25px;
+        border: 1px solid var(--border);
+      }
+
+      .quiz-progress-bar {
+        width: 0%;
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.3s ease;
+      }
+
+      .quiz-card {
+        padding: 35px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+
+      .quiz-question-label {
+        color: var(--text-muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+      }
+
+      .quiz-question {
+        font-size: clamp(28px, 5vw, 42px);
+        line-height: 1.15;
+        letter-spacing: -1px;
+        margin-bottom: 12px;
+      }
+
+      .quiz-question-subtitle {
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 28px;
+      }
+
+      /* =====================================================
+       ANSWERS
+    ===================================================== */
+
+      .quiz-answers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .quiz-answer {
+        padding: 17px;
+        text-align: left;
+        border-radius: 11px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text-secondary);
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .quiz-answer:hover:not(:disabled) {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      .quiz-answer:disabled {
+        cursor: default;
+      }
+
+      .quiz-answer.correct {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+      }
+
+      .quiz-answer.wrong {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+
+      /* =====================================================
+       FEEDBACK
+    ===================================================== */
+
+      .quiz-feedback {
+        display: none;
+        margin-top: 18px;
+        padding: 15px;
+        border-radius: 10px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .quiz-feedback.show {
+        display: block;
+      }
+
+      .quiz-feedback-title {
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .quiz-feedback-text {
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .next-question-button {
+        width: 100%;
+        margin-top: 12px;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      /* =====================================================
+       RESULT
+    ===================================================== */
+
+      .quiz-result {
+        display: none;
+        max-width: 650px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 45px 30px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+
+      .quiz-result.active {
+        display: block;
+      }
+
+      .result-label {
+        color: var(--accent-light);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+      }
+
+      .quiz-result h2 {
+        margin: 15px 0;
+        font-size: 42px;
+        letter-spacing: -2px;
+      }
+
+      .result-score {
+        font-size: 64px;
+        line-height: 1;
+        font-weight: 800;
+        margin: 20px 0;
+      }
+
+      .result-message {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 25px;
+      }
+
+      .result-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 25px;
+      }
+
+      .result-stat {
+        padding: 15px;
+        border-radius: 10px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .result-stat span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 9px;
+        margin-bottom: 6px;
+      }
+
+      .result-stat strong {
+        font-size: 18px;
+      }
+
+      .restart-quiz-button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .back-dictionary-button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      /* =====================================================
+       MOBILE
+    ===================================================== */
+
+      @media (max-width: 650px) {
+        .quiz-page {
+          padding-top: 60px;
+        }
+
+        .quiz-options,
+        .quiz-answers {
+          grid-template-columns: 1fr;
+        }
+
+        .quiz-card {
+          padding: 24px;
+        }
+
+        .result-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =====================================================
+       NAVBAR
+  ===================================================== -->
+
+    <header class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">AB</span>
+          <span class="logo-text">Dictionary</span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="dictionary.html" class="nav-link">Dictionary</a>
+          <a href="learn.html" class="nav-link">Learn</a>
+          <a href="quiz.html" class="nav-link active">Quiz</a>
+          <a href="favorites.html" class="nav-link">Favorites</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="icon-button" id="theme-toggle">◐</button>
+          <button class="menu-button" id="menu-toggle">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+       MOBILE MENU
+  ===================================================== -->
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html">Home</a>
+      <a href="dictionary.html">Dictionary</a>
+      <a href="learn.html">Learn</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="favorites.html">Favorites</a>
+    </div>
+
+    <!-- =====================================================
+       MAIN
+  ===================================================== -->
+
+    <main>
+      <section class="quiz-page">
+        <div class="section">
+          <div class="quiz-header">
+            <span class="section-label"> VOCABULARY CHALLENGE </span>
+
+            <h1>Test your vocabulary.</h1>
+
+            <p>
+              Challenge yourself with words from the AB Dictionary. Choose the
+              correct answer and build your vocabulary.
+            </p>
+          </div>
+
+          <!-- =================================================
+             SETUP
+        ================================================= -->
+
+          <div class="quiz-setup" id="quiz-setup">
+            <h2>Start a Quiz</h2>
+
+            <p class="quiz-setup-description">Choose your difficulty level.</p>
+
+            <div class="quiz-options">
+              <button
+                class="quiz-option active"
+                data-difficulty="all"
+                type="button"
+              >
+                <strong>All Levels</strong>
+                <span>Everything in the dictionary</span>
+              </button>
+
+              <button class="quiz-option" data-difficulty="Easy" type="button">
+                <strong>Easy</strong>
+                <span>Build your foundation</span>
+              </button>
+
+              <button
+                class="quiz-option"
+                data-difficulty="Medium"
+                type="button"
+              >
+                <strong>Medium</strong>
+                <span>Challenge yourself</span>
+              </button>
+
+              <button class="quiz-option" data-difficulty="Hard" type="button">
+                <strong>Hard</strong>
+                <span>Push your vocabulary</span>
+              </button>
+
+              <button
+                class="quiz-option"
+                data-difficulty="Expert"
+                type="button"
+              >
+                <strong>Expert</strong>
+                <span>For serious learners</span>
+              </button>
+            </div>
+
+            <button class="start-quiz-button" id="start-quiz" type="button">
+              Start Quiz →
+            </button>
+          </div>
+
+          <!-- =================================================
+             QUIZ
+        ================================================= -->
+
+          <div class="quiz-container" id="quiz-container">
+            <div class="quiz-top">
+              <span id="quiz-progress-text"> Question 1 of 10 </span>
+
+              <span class="quiz-score" id="quiz-score"> Score: 0 </span>
+            </div>
+
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar" id="quiz-progress-bar"></div>
+            </div>
+
+            <div class="quiz-card">
+              <div class="quiz-question-label">CHOOSE THE CORRECT ANSWER</div>
+
+              <h2 class="quiz-question" id="quiz-question">Loading...</h2>
+
+              <p class="quiz-question-subtitle" id="quiz-question-subtitle"></p>
+
+              <div class="quiz-answers" id="quiz-answers"></div>
+
+              <div class="quiz-feedback" id="quiz-feedback">
+                <div class="quiz-feedback-title" id="quiz-feedback-title"></div>
+
+                <div class="quiz-feedback-text" id="quiz-feedback-text"></div>
+              </div>
+
+              <button
+                class="next-question-button"
+                id="next-question"
+                type="button"
+                style="display: none"
+              >
+                Next Question →
+              </button>
+            </div>
+          </div>
+
+          <!-- =================================================
+             RESULT
+        ================================================= -->
+
+          <div class="quiz-result" id="quiz-result">
+            <span class="result-label"> QUIZ COMPLETE </span>
+
+            <h2>Your result</h2>
+
+            <div class="result-score" id="result-score">0%</div>
+
+            <p class="result-message" id="result-message"></p>
+
+            <div class="result-stats">
+              <div class="result-stat">
+                <span>CORRECT</span>
+                <strong id="result-correct">0</strong>
+              </div>
+
+              <div class="result-stat">
+                <span>WRONG</span>
+                <strong id="result-wrong">0</strong>
+              </div>
+
+              <div class="result-stat">
+                <span>BEST SCORE</span>
+                <strong id="result-best">0%</strong>
+              </div>
+            </div>
+
+            <button class="restart-quiz-button" id="restart-quiz" type="button">
+              Play Again
+            </button>
+
+            <button
+              class="back-dictionary-button"
+              type="button"
+              onclick="window.location.href = 'dictionary.html'"
+            >
+              Back to Dictionary
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- =====================================================
+       FOOTER
+  ===================================================== -->
+
+    <footer class="footer">
+      <div class="footer-container">
+        <div>
+          <a href="index.html" class="logo">
+            <span class="logo-mark">AB</span>
+            <span class="logo-text">Dictionary</span>
+          </a>
+
+          <p class="footer-description">
+            A modern English vocabulary platform for better learning.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <a href="dictionary.html">Dictionary</a>
+          <a href="learn.html">Learn</a>
+          <a href="quiz.html">Quiz</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        © 2026 AB Dictionary. Built for better vocabulary.
+      </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script src="js/quiz.js"></script>
+  </body>
+</html>

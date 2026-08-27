@@ -136,6 +136,16 @@ function readURLSearch() {
   if (search) {
     searchInput.value = search;
   }
+
+  const difficulty = params.get("difficulty");
+
+  if (difficulty) {
+    const allowedDifficulties = ["Easy", "Medium", "Hard", "Expert"];
+
+    if (allowedDifficulties.includes(difficulty)) {
+      difficultyFilter.value = difficulty;
+    }
+  }
 }
 
 /* ================= FILTER ================= */
