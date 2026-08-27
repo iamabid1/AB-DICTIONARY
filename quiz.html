@@ -126,6 +126,110 @@
       }
 
       /* =====================================================
+       XP CARD
+    ===================================================== */
+
+      .quiz-xp-card {
+        max-width: 760px;
+        margin: 0 auto 18px;
+        padding: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .quiz-xp-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--accent);
+        opacity: 0.8;
+      }
+
+      .quiz-xp-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      .quiz-xp-card-label {
+        color: var(--text-muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        margin-bottom: 9px;
+      }
+
+      .quiz-xp-card-total {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+      }
+
+      .quiz-xp-card-total strong {
+        font-size: 42px;
+        line-height: 1;
+        letter-spacing: -1.5px;
+      }
+
+      .quiz-xp-card-total span {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .quiz-xp-card-progress {
+        width: 230px;
+        height: 2px;
+        margin-top: 14px;
+        background: var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+      }
+
+      .quiz-xp-card-progress-bar {
+        width: 100%;
+        height: 100%;
+        background: var(--accent);
+        border-radius: 20px;
+      }
+
+      .quiz-xp-card-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .quiz-xp-stat {
+        padding: 14px 15px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .quiz-xp-stat span {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--text-muted);
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      .quiz-xp-stat strong {
+        font-size: 18px;
+      }
+
+      /* =====================================================
        QUIZ CARD
     ===================================================== */
 
@@ -395,6 +499,22 @@
           padding: 24px;
         }
 
+        .quiz-xp-card {
+          padding: 20px;
+        }
+
+        .quiz-xp-card-total strong {
+          font-size: 36px;
+        }
+
+        .quiz-xp-card-progress {
+          width: 180px;
+        }
+
+        .quiz-xp-card-stats {
+          grid-template-columns: 1fr;
+        }
+
         .result-stats {
           grid-template-columns: 1fr;
         }
@@ -457,6 +577,43 @@
               Challenge yourself with words from the AB Dictionary. Choose the
               correct answer and build your vocabulary.
             </p>
+          </div>
+
+          <!-- =================================================
+             XP SUMMARY
+        ================================================= -->
+
+          <div
+            class="quiz-xp-card"
+            id="quiz-xp-card"
+            aria-label="Quiz XP summary"
+          >
+            <div class="quiz-xp-card-header">
+              <div>
+                <div class="quiz-xp-card-label">YOUR EXPERIENCE</div>
+
+                <div class="quiz-xp-card-total">
+                  <strong id="quiz-xp-total">0</strong>
+                  <span>XP</span>
+                </div>
+
+                <div class="quiz-xp-card-progress">
+                  <div class="quiz-xp-card-progress-bar"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="quiz-xp-card-stats">
+              <div class="quiz-xp-stat">
+                <span>BEST QUIZ XP</span>
+                <strong id="quiz-xp-best">0</strong>
+              </div>
+
+              <div class="quiz-xp-stat">
+                <span>QUIZ STREAK</span>
+                <strong id="quiz-xp-streak">0</strong>
+              </div>
+            </div>
           </div>
 
           <!-- =================================================

@@ -89,6 +89,12 @@ const resultBest = document.getElementById("result-best");
 
 const resultMessage = document.getElementById("result-message");
 
+const xpTotalElement = document.getElementById("quiz-xp-total");
+
+const xpBestElement = document.getElementById("quiz-xp-best");
+
+const xpStreakElement = document.getElementById("quiz-xp-streak");
+
 /* =====================================================
    LOAD WORDS
 ===================================================== */
@@ -226,6 +232,28 @@ function updateQuizSetupStats() {
 /* =====================================================
    START QUIZ
 ===================================================== */
+
+/* =====================================================
+   XP CARD
+===================================================== */
+
+function updateQuizXPCard() {
+  const totalXP = Number(localStorage.getItem(TOTAL_XP_KEY) || 0);
+  const bestXP = Number(localStorage.getItem(BEST_XP_KEY) || 0);
+  const streak = Number(localStorage.getItem(QUIZ_STREAK_KEY) || 0);
+
+  if (xpTotalElement) {
+    xpTotalElement.textContent = totalXP.toLocaleString();
+  }
+
+  if (xpBestElement) {
+    xpBestElement.textContent = bestXP.toLocaleString();
+  }
+
+  if (xpStreakElement) {
+    xpStreakElement.textContent = streak;
+  }
+}
 
 if (startQuizButton) {
   startQuizButton.addEventListener("click", startQuiz);
@@ -565,8 +593,7 @@ function handleAnswer(clickedButton, answer) {
       feedbackText.textContent = `"${correctWord.word}" was the correct answer.`;
     }
   } else {
-
-  /* =================================================
+    /* =================================================
      WRONG
   ================================================= */
     clickedButton.classList.add("wrong");
@@ -798,6 +825,8 @@ function finishQuiz() {
 
   /* XP */
 
+  /* XP */
+
   const earnedXP = calculateXP();
 
   const xpData = saveQuizXP(earnedXP);
@@ -805,6 +834,8 @@ function finishQuiz() {
   /* Streak */
 
   const streak = updateQuizStreak();
+
+  updateQuizXPCard();
 
   /* Message */
 
@@ -1233,5 +1264,7 @@ document.addEventListener("keydown", (event) => {
 /* =====================================================
    START
 ===================================================== */
+
+updateQuizXPCard();
 
 loadQuizWords();
