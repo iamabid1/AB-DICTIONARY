@@ -347,8 +347,7 @@ async function toggleHomeFavorite(word, button) {
   if (index !== -1) {
     favorites.splice(index, 1);
   } else {
-
-  /* ================= ADD ================= */
+    /* ================= ADD ================= */
     favorites.push(word);
   }
 
@@ -882,3 +881,8 @@ async function loadDictionaryStats() {
 loadWordOfTheDay();
 
 loadDictionaryStats();
+
+window.testFirebaseUser = function () {
+  console.log("Email:", auth.currentUser?.email || "Not signed in");
+  console.log("UID:", auth.currentUser?.uid || "No UID");
+};
