@@ -1,34 +1,31 @@
 /* =====================================================
    AB DICTIONARY
-   LEARN ENGINE V2
-===================================================== */
-
-/* =====================================================
-   DATA
+   LEARN ENGINE V3
 ===================================================== */
 
 let learnWords = [];
-
 let currentLearningWord = null;
 
 /* =====================================================
-   STORAGE KEYS
+   STORAGE
 ===================================================== */
 
 const LEARN_FAVORITES_KEY = "abDictionaryFavorites";
-
 const LEARNED_WORDS_KEY = "abDictionaryLearnedWords";
-
 const LEARN_STREAK_KEY = "abDictionaryLearnStreak";
-
 const LEARN_TODAY_KEY = "abDictionaryTodayProgress";
+
+const DAILY_MISSIONS_KEY = "abDictionaryDailyMissions";
+const XP_KEY = "abDictionaryQuizTotalXP";
+
+/* Daily target */
+const DAILY_TARGET = 5;
 
 /* =====================================================
    ELEMENTS
 ===================================================== */
 
 const dailyWordContainer = document.getElementById("daily-word");
-
 const dailyDate = document.getElementById("daily-date");
 
 const randomLearnButton = document.getElementById("random-learn-button");
@@ -46,49 +43,17 @@ const progressBar = document.getElementById("learn-progress");
 const resetProgressButton = document.getElementById("reset-learn-progress");
 
 /* =====================================================
-   LOAD WORDS
+   DATE
 ===================================================== */
 
-async function loadLearnWords() {
-  try {
-    const response = await fetch("data/words.json");
+function getTodayKey() {
+  const now = new Date();
 
-    if (!response.ok) {
-      throw new Error("Could not load words.json");
-    }
-
-    learnWords = await response.json();
-
-    if (!Array.isArray(learnWords) || learnWords.length === 0) {
-      throw new Error("Dictionary is empty.");
-    }
-
-    /*
-      Keep the order predictable.
-    */
-
-    learnWords.sort((a, b) =>
-      String(a.word || "").localeCompare(String(b.word || "")),
-    );
-
-    showDailyWord();
-
-    updateDifficultyCounts();
-
-    updateLearningStats();
-
-    updateTodayProgress();
-  } catch (error) {
-    console.error("Learn page loading error:", error);
-
-    if (dailyWordContainer) {
-      dailyWordContainer.innerHTML = `
-        <p style="color: var(--text-muted);">
-          Unable to load today's word.
-        </p>
-      `;
-    }
-  }
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 /* =====================================================
@@ -105,21 +70,48 @@ function escapeLearnHTML(value) {
 }
 
 /* =====================================================
-   DATE HELPERS
+   LOAD WORDS
 ===================================================== */
 
-function getTodayKey() {
-  const now = new Date();
+async function loadLearnWords() {
+  try {
+    const response = await fetch("data/words.json");
 
-  return [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0"),
-  ].join("-");
+    if (!response.ok) {
+      throw new Error("Could not load words.json");
+    }
+
+    learnWords = await response.json();
+
+    if (!Array.isArray(learnWords) || !learnWords.length) {
+      throw new Error("Dictionary is empty.");
+    }
+
+    learnWords.sort((a, b) =>
+      String(a.word || "").localeCompare(String(b.word || "")),
+    );
+
+    showDailyWord();
+
+    updateDifficultyCounts();
+    updateLearningStats();
+    updateTodayProgress();
+    renderDailyMissions();
+  } catch (error) {
+    console.error("Learn page error:", error);
+
+    if (dailyWordContainer) {
+      dailyWordContainer.innerHTML = `
+        <p style="color:var(--text-muted);">
+          Unable to load today's word.
+        </p>
+      `;
+    }
+  }
 }
 
 /* =====================================================
-   WORD OF THE DAY
+   DAILY WORD
 ===================================================== */
 
 function getDailyWord() {
@@ -133,7 +125,7 @@ function getDailyWord() {
 
   const difference = now - startOfYear;
 
-  const oneDay = 1000 * 60 * 60 * 24;
+  const oneDay = 86400000;
 
   const dayOfYear = Math.floor(difference / oneDay);
 
@@ -143,7 +135,7 @@ function getDailyWord() {
 }
 
 /* =====================================================
-   SHOW DAILY WORD
+   SHOW WORD
 ===================================================== */
 
 function showDailyWord(wordOverride = null) {
@@ -153,35 +145,22 @@ function showDailyWord(wordOverride = null) {
 
   const word = wordOverride || getDailyWord();
 
-  if (!word) {
-    return;
-  }
+  if (!word) return;
 
   currentLearningWord = word;
 
-  /* =================================================
-     DATE
-  ================================================= */
-
   const now = new Date();
 
-  const formattedDate = now.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
   if (dailyDate) {
-    dailyDate.textContent = formattedDate;
+    dailyDate.textContent = now.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   }
 
-  /* =================================================
-     WORD CONTENT
-  ================================================= */
-
   dailyWordContainer.innerHTML = `
-
     <div class="daily-word-content">
 
       <h2>
@@ -242,25 +221,20 @@ function showDailyWord(wordOverride = null) {
         Array.isArray(word.synonyms) && word.synonyms.length
           ? `
             <div class="daily-extra">
-
               <span class="daily-extra-label">
                 SYNONYMS
               </span>
 
               <div class="daily-tags">
-
                 ${word.synonyms
                   .map(
-                    (item) => `
-                      <span>
+                    (item) =>
+                      `<span>
                         ${escapeLearnHTML(item)}
-                      </span>
-                    `,
+                      </span>`,
                   )
                   .join("")}
-
               </div>
-
             </div>
           `
           : ""
@@ -270,25 +244,20 @@ function showDailyWord(wordOverride = null) {
         Array.isArray(word.antonyms) && word.antonyms.length
           ? `
             <div class="daily-extra">
-
               <span class="daily-extra-label">
                 ANTONYMS
               </span>
 
               <div class="daily-tags">
-
                 ${word.antonyms
                   .map(
-                    (item) => `
-                      <span>
+                    (item) =>
+                      `<span>
                         ${escapeLearnHTML(item)}
-                      </span>
-                    `,
+                      </span>`,
                   )
                   .join("")}
-
               </div>
-
             </div>
           `
           : ""
@@ -355,24 +324,15 @@ function showDailyWord(wordOverride = null) {
       </div>
 
     </div>
-
   `;
 
-  /* =================================================
-     PRONOUNCE
-  ================================================= */
+  /* Pronounce */
 
-  const pronounceButton = document.getElementById("daily-pronounce");
+  document.getElementById("daily-pronounce")?.addEventListener("click", () => {
+    speakLearnWord(word.word);
+  });
 
-  if (pronounceButton) {
-    pronounceButton.addEventListener("click", () => {
-      speakLearnWord(word.word);
-    });
-  }
-
-  /* =================================================
-     FAVORITE
-  ================================================= */
+  /* Favorite */
 
   const favoriteButton = document.getElementById("daily-favorite");
 
@@ -384,9 +344,7 @@ function showDailyWord(wordOverride = null) {
     });
   }
 
-  /* =================================================
-     LEARNED
-  ================================================= */
+  /* Learned */
 
   const learnedButton = document.getElementById("daily-learned");
 
@@ -398,23 +356,17 @@ function showDailyWord(wordOverride = null) {
     });
   }
 
-  /* =================================================
-     VIEW IN DICTIONARY
-  ================================================= */
+  /* Dictionary */
 
-  const viewButton = document.getElementById("daily-view");
-
-  if (viewButton) {
-    viewButton.addEventListener("click", () => {
-      window.location.href = `dictionary.html?search=${encodeURIComponent(
-        word.word,
-      )}`;
-    });
-  }
+  document.getElementById("daily-view")?.addEventListener("click", () => {
+    window.location.href = `dictionary.html?search=${encodeURIComponent(
+      word.word,
+    )}`;
+  });
 }
 
 /* =====================================================
-   PRONUNCIATION
+   SPEECH
 ===================================================== */
 
 function speakLearnWord(word) {
@@ -422,15 +374,14 @@ function speakLearnWord(word) {
     return;
   }
 
-  window.speechSynthesis.cancel();
+  speechSynthesis.cancel();
 
   const speech = new SpeechSynthesisUtterance(word);
 
   speech.lang = "en-US";
-
   speech.rate = 0.85;
 
-  window.speechSynthesis.speak(speech);
+  speechSynthesis.speak(speech);
 }
 
 /* =====================================================
@@ -441,16 +392,12 @@ function getLearnFavorites() {
   try {
     const saved = localStorage.getItem(LEARN_FAVORITES_KEY);
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
     return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error("Could not load favorites:", error);
-
+  } catch {
     return [];
   }
 }
@@ -466,15 +413,15 @@ function isLearnFavorite(word) {
 }
 
 function updateDailyFavoriteButton(button, word) {
-  const saved = isLearnFavorite(word);
+  const favorite = isLearnFavorite(word);
 
-  button.textContent = saved ? "★ Favorited" : "☆ Favorite";
+  button.textContent = favorite ? "★ Favorited" : "☆ Favorite";
 
-  button.classList.toggle("is-favorite", saved);
+  button.classList.toggle("is-favorite", favorite);
 }
 
 function toggleDailyFavorite(button, word) {
-  let favorites = getLearnFavorites();
+  const favorites = getLearnFavorites();
 
   const index = favorites.findIndex(
     (item) => String(item).toLowerCase() === String(word).toLowerCase(),
@@ -484,6 +431,8 @@ function toggleDailyFavorite(button, word) {
     favorites.splice(index, 1);
   } else {
     favorites.push(word);
+
+    completeDailyMission("favorite");
   }
 
   saveLearnFavorites(favorites);
@@ -499,16 +448,12 @@ function getLearnedWords() {
   try {
     const saved = localStorage.getItem(LEARNED_WORDS_KEY);
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
     return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error("Could not load learned words:", error);
-
+  } catch {
     return [];
   }
 }
@@ -531,28 +476,181 @@ function updateLearnedButton(button, word) {
   button.classList.toggle("is-learned", learned);
 }
 
+/* =====================================================
+   MARK WORD LEARNED
+===================================================== */
+
 function toggleLearnedWord(button, word) {
-  let learned = getLearnedWords();
+  const learned = getLearnedWords();
 
   const index = learned.findIndex(
     (item) => String(item).toLowerCase() === String(word).toLowerCase(),
   );
 
+  /* UNLEARN */
+
   if (index !== -1) {
     learned.splice(index, 1);
-  } else {
-    learned.push(word);
 
-    recordTodayLearning();
+    saveLearnedWords(learned);
+
+    updateLearnedButton(button, word);
+
+    updateLearningStats();
+
+    return;
   }
+
+  /* LEARN */
+
+  learned.push(word);
 
   saveLearnedWords(learned);
 
-  updateLearnedButton(button, word);
+  /* IMPORTANT:
+     Only count this word once.
+  */
+
+  recordTodayLearning(word);
+
+  /* Daily mission */
+
+  completeDailyMission("daily-word");
+
+  updateLearningStreak();
 
   updateLearningStats();
+  updateTodayProgress();
+
+  updateLearnedButton(button, word);
+
+  /* Update mission UI */
+
+  renderDailyMissions();
+}
+
+/* =====================================================
+   TODAY'S PROGRESS
+===================================================== */
+
+function getTodayProgress() {
+  const today = getTodayKey();
+
+  try {
+    const saved = localStorage.getItem(LEARN_TODAY_KEY);
+
+    if (!saved) {
+      return {
+        date: today,
+        words: [],
+      };
+    }
+
+    const data = JSON.parse(saved);
+
+    if (!data || data.date !== today) {
+      return {
+        date: today,
+        words: [],
+      };
+    }
+
+    return {
+      date: today,
+      words: Array.isArray(data.words) ? data.words : [],
+    };
+  } catch {
+    return {
+      date: today,
+      words: [],
+    };
+  }
+}
+
+/* =====================================================
+   RECORD TODAY'S WORD
+===================================================== */
+
+function recordTodayLearning(word) {
+  const today = getTodayProgress();
+
+  const exists = today.words.some(
+    (item) => String(item).toLowerCase() === String(word).toLowerCase(),
+  );
+
+  /* Already counted today */
+
+  if (exists) {
+    updateTodayProgress();
+    return;
+  }
+
+  today.words.push(word);
+
+  localStorage.setItem(LEARN_TODAY_KEY, JSON.stringify(today));
 
   updateTodayProgress();
+}
+
+/* =====================================================
+   UPDATE PROGRESS UI
+===================================================== */
+
+function updateTodayProgress() {
+  const today = getTodayProgress();
+
+  const count = today.words.length;
+
+  const percentage = Math.min(100, (count / DAILY_TARGET) * 100);
+
+  if (progressCountElement) {
+    progressCountElement.textContent = count.toLocaleString();
+  }
+
+  if (progressBar) {
+    progressBar.style.width = `${percentage}%`;
+
+    progressBar.setAttribute(
+      "aria-valuenow",
+      String(Math.min(count, DAILY_TARGET)),
+    );
+  }
+
+  /* Keep the HTML progress label synced */
+
+  const label = document.getElementById("today-progress-label");
+
+  if (label) {
+    label.textContent = count.toLocaleString();
+  }
+
+  /* Completion */
+
+  if (count >= DAILY_TARGET) {
+    completeDailyMission("daily-word");
+  }
+}
+
+/* =====================================================
+   RESET TODAY
+===================================================== */
+
+if (resetProgressButton) {
+  resetProgressButton.addEventListener("click", () => {
+    const confirmed = window.confirm("Reset today's learning progress?");
+
+    if (!confirmed) return;
+
+    localStorage.setItem(
+      LEARN_TODAY_KEY,
+      JSON.stringify({
+        date: getTodayKey(),
+        words: [],
+      }),
+    );
+
+    updateTodayProgress();
+  });
 }
 
 /* =====================================================
@@ -566,120 +664,22 @@ function updateLearningStats() {
     learnedCountElement.textContent = learned.length.toLocaleString();
   }
 
-  const streak = getLearningStreak();
-
   if (streakCountElement) {
-    streakCountElement.textContent = streak.toLocaleString();
+    streakCountElement.textContent = getLearningStreak().toLocaleString();
   }
 }
 
 /* =====================================================
-   TODAY'S PROGRESS
-===================================================== */
-
-function getTodayProgress() {
-  try {
-    const saved = localStorage.getItem(LEARN_TODAY_KEY);
-
-    if (!saved) {
-      return {
-        date: getTodayKey(),
-        count: 0,
-      };
-    }
-
-    const parsed = JSON.parse(saved);
-
-    if (!parsed || parsed.date !== getTodayKey()) {
-      return {
-        date: getTodayKey(),
-        count: 0,
-      };
-    }
-
-    return {
-      date: parsed.date,
-      count: Number(parsed.count) || 0,
-    };
-  } catch {
-    return {
-      date: getTodayKey(),
-      count: 0,
-    };
-  }
-}
-
-function recordTodayLearning() {
-  const today = getTodayProgress();
-
-  today.count += 1;
-
-  localStorage.setItem(LEARN_TODAY_KEY, JSON.stringify(today));
-
-  updateTodayProgress();
-}
-
-function updateTodayProgress() {
-  const today = getTodayProgress();
-
-  if (progressCountElement) {
-    progressCountElement.textContent = today.count.toLocaleString();
-  }
-
-  /*
-    Default daily target = 5.
-  */
-
-  const target = 5;
-
-  const percentage = Math.min(100, (today.count / target) * 100);
-
-  if (progressBar) {
-    progressBar.style.width = `${percentage}%`;
-
-    progressBar.setAttribute("aria-valuenow", String(today.count));
-  }
-}
-
-/* =====================================================
-   RESET TODAY'S PROGRESS
-===================================================== */
-
-if (resetProgressButton) {
-  resetProgressButton.addEventListener("click", () => {
-    const confirmed = window.confirm("Reset today's learning progress?");
-
-    if (!confirmed) {
-      return;
-    }
-
-    localStorage.setItem(
-      LEARN_TODAY_KEY,
-      JSON.stringify({
-        date: getTodayKey(),
-        count: 0,
-      }),
-    );
-
-    updateTodayProgress();
-  });
-}
-
-/* =====================================================
-   LEARNING STREAK
+   STREAK
 ===================================================== */
 
 function getLearningStreak() {
   try {
-    const saved = localStorage.getItem(LEARN_STREAK_KEY);
+    const data = JSON.parse(localStorage.getItem(LEARN_STREAK_KEY));
 
-    if (!saved) {
-      return 0;
-    }
+    if (!data) return 0;
 
-    const parsed = JSON.parse(saved);
-
-    return Number(parsed.streak) || 0;
+    return Number(data.streak) || 0;
   } catch {
     return 0;
   }
@@ -708,7 +708,7 @@ function updateLearningStreak() {
 
     const current = new Date(today);
 
-    const difference = Math.round((current - last) / (1000 * 60 * 60 * 24));
+    const difference = Math.round((current - last) / 86400000);
 
     if (difference === 1) {
       data.streak += 1;
@@ -725,7 +725,7 @@ function updateLearningStreak() {
 }
 
 /* =====================================================
-   RANDOM WORD
+   RANDOM
 ===================================================== */
 
 function getRandomLearningWord() {
@@ -733,49 +733,42 @@ function getRandomLearningWord() {
     return null;
   }
 
-  const index = Math.floor(Math.random() * learnWords.length);
-
-  return learnWords[index];
-}
-
-function showRandomLearningWord() {
-  const word = getRandomLearningWord();
-
-  if (!word) {
-    return;
-  }
-
-  showDailyWord(word);
+  return learnWords[Math.floor(Math.random() * learnWords.length)];
 }
 
 if (randomLearnButton) {
-  randomLearnButton.addEventListener("click", showRandomLearningWord);
+  randomLearnButton.addEventListener("click", () => {
+    const word = getRandomLearningWord();
+
+    if (word) {
+      showDailyWord(word);
+    }
+  });
 }
 
 /* =====================================================
-   NEXT WORD
+   NEXT
 ===================================================== */
 
 if (nextLearnButton) {
   nextLearnButton.addEventListener("click", () => {
-    const currentIndex = learnWords.findIndex(
-      (item) => item.word === currentLearningWord?.word,
-    );
-
-    if (currentIndex === -1) {
-      showRandomLearningWord();
-
+    if (!currentLearningWord) {
+      showDailyWord();
       return;
     }
 
-    const nextIndex = (currentIndex + 1) % learnWords.length;
+    const index = learnWords.findIndex(
+      (item) => item.word === currentLearningWord.word,
+    );
+
+    const nextIndex = index === -1 ? 0 : (index + 1) % learnWords.length;
 
     showDailyWord(learnWords[nextIndex]);
   });
 }
 
 /* =====================================================
-   DIFFICULTY COUNTS
+   DIFFICULTY
 ===================================================== */
 
 function updateDifficultyCounts() {
@@ -792,33 +785,191 @@ function updateDifficultyCounts() {
   });
 }
 
-/* =====================================================
-   DIFFICULTY NAVIGATION
-===================================================== */
-
 document.querySelectorAll(".difficulty-card").forEach((card) => {
   card.addEventListener("click", () => {
     const level = card.dataset.level;
 
-    if (!level) {
-      return;
-    }
+    if (!level) return;
 
     window.location.href = `dictionary.html?difficulty=${encodeURIComponent(
       level,
     )}`;
   });
+
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      card.click();
+    }
+  });
 });
+
+/* =====================================================
+   DAILY MISSIONS
+===================================================== */
+
+const DAILY_MISSIONS = {
+  "daily-word": 10,
+  favorite: 15,
+  quiz: 25,
+  correct: 30,
+};
+
+function getMissionDate() {
+  return getTodayKey();
+}
+
+function getDailyMissionData() {
+  const today = getMissionDate();
+
+  try {
+    const saved = localStorage.getItem(DAILY_MISSIONS_KEY);
+
+    if (!saved) {
+      return {
+        date: today,
+        completed: [],
+      };
+    }
+
+    const data = JSON.parse(saved);
+
+    if (!data || data.date !== today) {
+      return {
+        date: today,
+        completed: [],
+      };
+    }
+
+    return {
+      date: today,
+      completed: Array.isArray(data.completed) ? data.completed : [],
+    };
+  } catch {
+    return {
+      date: today,
+      completed: [],
+    };
+  }
+}
+
+function saveDailyMissionData(data) {
+  localStorage.setItem(DAILY_MISSIONS_KEY, JSON.stringify(data));
+}
+
+/* =====================================================
+   XP
+===================================================== */
+
+function addMissionXP(amount) {
+  const currentXP = Number(localStorage.getItem(XP_KEY) || 0);
+
+  const newXP = currentXP + amount;
+
+  localStorage.setItem(XP_KEY, String(newXP));
+
+  window.dispatchEvent(
+    new CustomEvent("abDictionaryXPUpdated", {
+      detail: {
+        amount,
+        totalXP: newXP,
+      },
+    }),
+  );
+}
+
+/* =====================================================
+   COMPLETE MISSION
+===================================================== */
+
+function completeDailyMission(missionId) {
+  if (!DAILY_MISSIONS[missionId]) {
+    return false;
+  }
+
+  const data = getDailyMissionData();
+
+  if (data.completed.includes(missionId)) {
+    return false;
+  }
+
+  data.completed.push(missionId);
+
+  saveDailyMissionData(data);
+
+  addMissionXP(DAILY_MISSIONS[missionId]);
+
+  renderDailyMissions();
+
+  return true;
+}
+
+/* =====================================================
+   MISSION RENDER
+===================================================== */
+
+function renderDailyMissions() {
+  const list = document.getElementById("daily-missions-list");
+
+  const progressText = document.getElementById("missions-progress-text");
+
+  const progressFill = document.getElementById("missions-progress-fill");
+
+  if (!list) return;
+
+  const data = getDailyMissionData();
+
+  const missionIds = Object.keys(DAILY_MISSIONS);
+
+  const completedCount = missionIds.filter((id) =>
+    data.completed.includes(id),
+  ).length;
+
+  const total = missionIds.length;
+
+  const percentage = total ? (completedCount / total) * 100 : 0;
+
+  if (progressText) {
+    progressText.textContent = `${completedCount} / ${total} completed`;
+  }
+
+  if (progressFill) {
+    progressFill.style.width = `${percentage}%`;
+  }
+
+  missionIds.forEach((id) => {
+    const item = list.querySelector(`[data-mission="${id}"]`);
+
+    if (!item) return;
+
+    const completed = data.completed.includes(id);
+
+    item.classList.toggle("completed", completed);
+
+    const status = item.querySelector(".mission-status");
+
+    if (status) {
+      status.textContent = completed ? "✓" : "○";
+    }
+  });
+}
+
+/* =====================================================
+   GLOBAL MISSION HELPERS
+===================================================== */
+
+window.completeQuizMission = function () {
+  completeDailyMission("quiz");
+};
+
+window.completeCorrectAnswersMission = function () {
+  completeDailyMission("correct");
+};
 
 /* =====================================================
    START
 ===================================================== */
 
 loadLearnWords();
-
-/*
-  Update streak when the Learn page
-  is actively used.
-*/
-
 updateLearningStreak();
+renderDailyMissions();

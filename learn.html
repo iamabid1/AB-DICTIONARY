@@ -535,15 +535,12 @@
         </a>
 
         <nav class="nav-links">
-          <a href="index.html" class="nav-link"> Home </a>
-
-          <a href="dictionary.html" class="nav-link"> Dictionary </a>
-
-          <a href="learn.html" class="nav-link active"> Learn </a>
-
-          <a href="quiz.html" class="nav-link"> Quiz </a>
-
-          <a href="favorites.html" class="nav-link"> Favorites </a>
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="dictionary.html" class="nav-link">Dictionary</a>
+          <a href="learn.html" class="nav-link">Learn</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
+          <a href="favorites.html" class="nav-link">Favorites</a>
+          <a href="achievements.html" class="nav-link">Achievements</a>
         </nav>
 
         <div class="nav-actions">
@@ -559,15 +556,12 @@
   ===================================================== -->
 
     <div class="mobile-menu" id="mobile-menu">
-      <a href="index.html"> Home </a>
-
-      <a href="dictionary.html"> Dictionary </a>
-
-      <a href="learn.html"> Learn </a>
-
-      <a href="quiz.html"> Quiz </a>
-
-      <a href="favorites.html"> Favorites </a>
+      <a href="index.html">Home</a>
+      <a href="dictionary.html">Dictionary</a>
+      <a href="learn.html">Learn</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="achievements.html">Achievements</a>
     </div>
 
     <!-- =====================================================
@@ -635,6 +629,7 @@
             <div
               class="progress-track"
               role="progressbar"
+              aria-label="Today's learning progress"
               aria-valuemin="0"
               aria-valuemax="5"
               aria-valuenow="0"
@@ -670,7 +665,7 @@
 
             <div class="daily-card">
               <div id="daily-word">
-                <p style="color: var(--text-muted)">Loading today's word...</p>
+                <p class="loading-message">Loading today's word...</p>
               </div>
             </div>
 

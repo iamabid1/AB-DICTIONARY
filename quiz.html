@@ -388,6 +388,82 @@
         cursor: pointer;
       }
 
+      .next-question-button.is-hidden {
+        display: none;
+      }
+
+      /* =====================================================
+   XP LEVEL DETAILS
+===================================================== */
+
+      .quiz-xp-level {
+        margin-top: 10px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .quiz-xp-next {
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: 10px;
+      }
+
+      .quiz-xp-card-progress-bar {
+        width: 0%;
+        transition: width 0.45s ease;
+      }
+
+      .xp-level-up {
+        position: fixed;
+        left: 50%;
+        top: 25px;
+        z-index: 9999;
+        width: min(90%, 360px);
+        transform: translate(-50%, -30px);
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.35s ease;
+      }
+
+      .xp-level-up.show {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+
+      .xp-level-up-inner {
+        padding: 20px;
+        text-align: center;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+      }
+
+      .xp-level-up-icon {
+        display: block;
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      .xp-level-up-inner strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 18px;
+      }
+
+      .xp-level-up-inner span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      .xp-level-up-inner small {
+        display: block;
+        margin-top: 5px;
+        color: var(--accent-light);
+      }
+
       /* =====================================================
        RESULT
     ===================================================== */
@@ -538,8 +614,9 @@
           <a href="index.html" class="nav-link">Home</a>
           <a href="dictionary.html" class="nav-link">Dictionary</a>
           <a href="learn.html" class="nav-link">Learn</a>
-          <a href="quiz.html" class="nav-link active">Quiz</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
           <a href="favorites.html" class="nav-link">Favorites</a>
+          <a href="achievements.html" class="nav-link">Achievements</a>
         </nav>
 
         <div class="nav-actions">
@@ -559,6 +636,7 @@
       <a href="learn.html">Learn</a>
       <a href="quiz.html">Quiz</a>
       <a href="favorites.html">Favorites</a>
+      <a href="achievements.html">Achievements</a>
     </div>
 
     <!-- =====================================================
@@ -583,6 +661,11 @@
              XP SUMMARY
         ================================================= -->
 
+          ```html
+          <!-- =================================================
+   XP SUMMARY
+================================================= -->
+
           <div
             class="quiz-xp-card"
             id="quiz-xp-card"
@@ -597,8 +680,19 @@
                   <span>XP</span>
                 </div>
 
+                <div class="quiz-xp-level" id="quiz-xp-level">
+                  Level 1 • Beginner
+                </div>
+
                 <div class="quiz-xp-card-progress">
-                  <div class="quiz-xp-card-progress-bar"></div>
+                  <div
+                    class="quiz-xp-card-progress-bar"
+                    id="quiz-xp-progress"
+                  ></div>
+                </div>
+
+                <div class="quiz-xp-next" id="quiz-xp-next">
+                  100 XP until next level
                 </div>
               </div>
             </div>
@@ -700,10 +794,9 @@
               </div>
 
               <button
-                class="next-question-button"
+                class="next-question-button is-hidden"
                 id="next-question"
                 type="button"
-                style="display: none"
               >
                 Next Question →
               </button>

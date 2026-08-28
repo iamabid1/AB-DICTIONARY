@@ -7,7 +7,7 @@
 
     <meta
       name="description"
-      content="Explore thousands of English words with meanings, Bangla translations, examples and more."
+      content="Explore thousands of English words with meanings, Bangla translations, examples, synonyms and more."
     />
 
     <title>Dictionary — AB Dictionary</title>
@@ -15,13 +15,12 @@
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 
     <link rel="stylesheet" href="css/style.css" />
-
     <link rel="stylesheet" href="css/responsive.css" />
 
     <style>
       /* =====================================================
-       WORD DETAILS PANEL
-    ===================================================== */
+         WORD DETAILS OVERLAY
+      ===================================================== */
 
       .word-overlay {
         position: fixed;
@@ -40,8 +39,8 @@
         position: absolute;
         inset: 0;
         background: rgba(0, 0, 0, 0.62);
-        -webkit-backdrop-filter: blur(7px);
         backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -54,13 +53,20 @@
         position: absolute;
         top: 0;
         right: 0;
+
         width: min(520px, 94vw);
         height: 100%;
+
         overflow-y: auto;
+
         background: linear-gradient(145deg, var(--surface-2), var(--surface));
+
         border-left: 1px solid var(--border);
+
         box-shadow: -20px 0 70px rgba(0, 0, 0, 0.35);
+
         transform: translateX(100%);
+
         transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
@@ -70,23 +76,33 @@
 
       .word-close {
         position: absolute;
+
         top: 20px;
         right: 20px;
+
         width: 38px;
         height: 38px;
+
         border-radius: 50%;
+
         background: var(--surface);
         border: 1px solid var(--border);
+
         color: var(--text-secondary);
+
         font-size: 24px;
         line-height: 1;
-        z-index: 2;
-        transition: 0.2s ease;
+
         cursor: pointer;
+
+        z-index: 5;
+
+        transition: 0.2s ease;
       }
 
       .word-close:hover {
         background: var(--accent);
+        border-color: var(--accent);
         color: white;
         transform: rotate(90deg);
       }
@@ -102,133 +118,198 @@
 
       .word-detail-label {
         display: inline-block;
+
         padding: 6px 9px;
+
         border-radius: 6px;
+
         background: rgba(139, 92, 246, 0.1);
+
         color: var(--accent-light);
+
         font-size: 9px;
         font-weight: 800;
+
         letter-spacing: 1.2px;
+
         text-transform: uppercase;
       }
 
       .word-detail-header h2 {
         margin-top: 14px;
+
         font-size: 48px;
         line-height: 1;
+
         letter-spacing: -2px;
+
+        overflow-wrap: anywhere;
       }
 
       .word-pronunciation {
         margin-top: 13px;
+
         color: var(--text-muted);
+
         font-family: monospace;
+
         font-size: 14px;
       }
 
       .word-detail-section {
         padding: 25px 0;
+
         border-bottom: 1px solid var(--border);
       }
 
       .detail-label {
         display: block;
+
         margin-bottom: 10px;
+
         color: var(--text-muted);
+
         font-size: 9px;
         font-weight: 800;
+
         letter-spacing: 1.3px;
       }
 
       .word-detail-section p {
         color: var(--text-secondary);
+
         font-size: 14px;
+
         line-height: 1.8;
       }
 
       .bangla-section p {
         color: var(--text);
+
         font-size: 16px;
         font-weight: 500;
       }
 
       .example-box {
         padding: 16px;
+
         border-radius: 10px;
+
         background: rgba(255, 255, 255, 0.025);
+
         border: 1px solid var(--border);
+
         color: var(--text-secondary);
+
         font-size: 13px;
+
         line-height: 1.7;
       }
 
       .word-tags {
         display: flex;
+
         flex-wrap: wrap;
+
         gap: 7px;
       }
 
       .word-tags span {
         padding: 7px 10px;
+
         border-radius: 7px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         color: var(--text-secondary);
+
         font-size: 11px;
       }
 
       .word-detail-meta {
         display: grid;
+
         grid-template-columns: 1fr 1fr;
+
         gap: 10px;
+
         padding: 25px 0;
       }
 
       .word-detail-meta div {
         padding: 15px;
+
         border-radius: 10px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
       }
 
       .word-detail-meta span {
         display: block;
+
         color: var(--text-muted);
+
         font-size: 8px;
         font-weight: 800;
+
         letter-spacing: 1px;
+
         margin-bottom: 7px;
       }
 
       .word-detail-meta strong {
         color: var(--text);
+
         font-size: 12px;
       }
 
       .word-actions {
         display: grid;
+
         grid-template-columns: 1fr 1fr;
+
         gap: 10px;
+
         margin-top: 5px;
       }
 
       .word-action {
         padding: 13px;
+
         border-radius: 10px;
+
         border: 1px solid var(--border);
+
         background: var(--surface);
+
         color: var(--text-secondary);
+
         font-size: 12px;
         font-weight: 600;
+
         transition: 0.2s ease;
+
         cursor: pointer;
       }
 
       .word-action:hover {
         background: var(--accent);
+
         border-color: var(--accent);
+
         color: white;
+
         transform: translateY(-2px);
+      }
+
+      .word-action.is-favorite {
+        background: rgba(139, 92, 246, 0.12);
+        border-color: var(--accent);
+        color: var(--accent-light);
       }
 
       body.panel-open {
@@ -236,8 +317,8 @@
       }
 
       /* =====================================================
-       DICTIONARY PAGE
-    ===================================================== */
+         DICTIONARY PAGE
+      ===================================================== */
 
       .dictionary-page {
         padding: 90px 0 120px;
@@ -245,160 +326,244 @@
 
       .dictionary-header {
         text-align: center;
+
         max-width: 750px;
+
         margin: 0 auto 55px;
       }
 
       .dictionary-header h1 {
         font-size: clamp(42px, 6vw, 64px);
+
         letter-spacing: -3px;
+
         line-height: 1;
+
         margin-bottom: 20px;
       }
 
       .dictionary-header p {
         color: var(--text-secondary);
+
         line-height: 1.7;
+
         font-size: 15px;
       }
 
+      /* =====================================================
+         SEARCH
+      ===================================================== */
+
       .dictionary-search {
         max-width: 800px;
+
         margin: 35px auto 0;
       }
 
       .dictionary-search-box {
         display: flex;
+
         align-items: center;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         border-radius: 14px;
+
         padding: 5px;
+
         transition: 0.25s ease;
       }
 
       .dictionary-search-box:focus-within {
         border-color: rgba(139, 92, 246, 0.6);
+
         box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.08);
       }
 
       .dictionary-search-box span {
         padding-left: 15px;
+
         color: var(--text-muted);
+
         font-size: 23px;
       }
 
       .dictionary-search-box input {
         flex: 1;
+
         min-width: 0;
+
         padding: 15px 12px;
+
         border: none;
+
         outline: none;
+
         background: transparent;
+
         color: var(--text);
+
         font-size: 14px;
       }
 
       .dictionary-search-box button {
         padding: 12px 20px;
+
         border-radius: 10px;
+
         background: var(--accent);
+
         color: white;
+
         font-size: 13px;
         font-weight: 600;
+
         border: none;
+
         cursor: pointer;
+
+        transition: 0.2s ease;
+      }
+
+      .dictionary-search-box button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
       }
 
       /* =====================================================
-       RANDOM WORD
-    ===================================================== */
+         RANDOM WORD
+      ===================================================== */
 
       .random-word-button {
         margin-top: 15px;
+
         padding: 11px 17px;
+
         border-radius: 9px;
+
         border: 1px solid var(--border);
+
         background: var(--surface);
+
         color: var(--text-secondary);
+
         font-size: 12px;
         font-weight: 600;
+
         cursor: pointer;
+
         transition: 0.2s ease;
       }
 
       .random-word-button:hover {
         background: var(--surface-2);
+
         border-color: var(--accent);
+
         color: var(--text);
+
         transform: translateY(-2px);
       }
 
       /* =====================================================
-       CONTROLS
-    ===================================================== */
+         CONTROLS
+      ===================================================== */
 
       .dictionary-controls {
         display: flex;
+
         justify-content: space-between;
+
         align-items: center;
+
         gap: 20px;
+
         margin-bottom: 25px;
       }
 
       .alphabet {
         display: flex;
+
         flex-wrap: wrap;
+
         gap: 5px;
       }
 
       .alphabet button {
         width: 32px;
         height: 32px;
+
         border-radius: 7px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         color: var(--text-secondary);
+
         font-size: 11px;
+
         transition: 0.2s ease;
+
         cursor: pointer;
       }
 
       .alphabet button:hover,
       .alphabet button.active {
         background: var(--accent);
+
         color: white;
+
         border-color: var(--accent);
       }
 
       /* =====================================================
-       FILTERS
-    ===================================================== */
+         FILTERS
+      ===================================================== */
 
       .filters {
         display: flex;
+
         gap: 8px;
       }
 
       .filter-select {
         padding: 10px 12px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         border-radius: 9px;
+
         color: var(--text-secondary);
+
         outline: none;
+
         font-size: 12px;
+
+        cursor: pointer;
+      }
+
+      .filter-select:focus {
+        border-color: var(--accent);
       }
 
       /* =====================================================
-       RECENTLY VIEWED
-    ===================================================== */
+         RECENTLY VIEWED
+      ===================================================== */
 
       .recent-section {
         margin: 0 0 45px;
+
         padding: 25px;
+
         border: 1px solid var(--border);
+
         border-radius: 16px;
+
         background: linear-gradient(145deg, var(--surface-2), var(--surface));
 
         animation: recentFadeIn 0.45s ease;
@@ -406,57 +571,85 @@
 
       .recent-header {
         display: flex;
+
         justify-content: space-between;
+
         align-items: flex-start;
+
         gap: 20px;
+
         margin-bottom: 20px;
       }
 
       .recent-header h2 {
         margin-top: 7px;
+
         margin-bottom: 5px;
+
         font-size: 22px;
+
         letter-spacing: -0.5px;
       }
 
       .recent-header p {
         color: var(--text-muted);
+
         font-size: 12px;
+
         line-height: 1.5;
       }
 
       .clear-recent-button {
         padding: 9px 12px;
+
         border-radius: 8px;
+
         background: transparent;
+
         border: 1px solid var(--border);
+
         color: var(--text-muted);
+
         font-size: 11px;
+
         cursor: pointer;
+
         transition: 0.2s ease;
+
         white-space: nowrap;
       }
 
       .clear-recent-button:hover {
         border-color: var(--accent);
+
         color: var(--text);
+
         transform: translateY(-1px);
       }
 
       .recent-list {
         display: grid;
+
         grid-template-columns: repeat(5, minmax(0, 1fr));
+
         gap: 8px;
       }
 
       .recent-word-card {
         min-width: 0;
+
         padding: 14px;
+
         text-align: left;
+
         border-radius: 10px;
+
         border: 1px solid var(--border);
+
         background: var(--surface);
+
         cursor: pointer;
+
         transition:
           transform 0.2s ease,
           border-color 0.2s ease,
@@ -465,37 +658,57 @@
 
       .recent-word-card:hover {
         transform: translateY(-3px);
+
         background: var(--surface-2);
+
         border-color: rgba(139, 92, 246, 0.45);
       }
 
       .recent-word {
         display: block;
+
         overflow: hidden;
+
         color: var(--text);
+
         font-size: 14px;
+
         font-weight: 700;
+
         text-overflow: ellipsis;
+
         white-space: nowrap;
       }
 
       .recent-part {
         display: block;
+
         margin-top: 4px;
+
         color: var(--accent-light);
+
         font-size: 9px;
+
         font-weight: 700;
+
         letter-spacing: 0.7px;
+
         text-transform: uppercase;
       }
 
       .recent-bangla {
         display: block;
+
         margin-top: 8px;
+
         overflow: hidden;
+
         color: var(--text-muted);
+
         font-size: 11px;
+
         text-overflow: ellipsis;
+
         white-space: nowrap;
       }
 
@@ -512,150 +725,272 @@
       }
 
       /* =====================================================
-       RESULTS
-    ===================================================== */
+         RESULTS
+      ===================================================== */
 
       .results-header {
         display: flex;
+
         justify-content: space-between;
+
         align-items: center;
+
         margin-bottom: 15px;
+
         color: var(--text-muted);
+
         font-size: 12px;
       }
 
       .word-list {
         display: grid;
+
         grid-template-columns: repeat(2, minmax(0, 1fr));
+
         gap: 10px;
       }
 
       .dictionary-word {
         display: block;
+
         padding: 22px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         border-radius: 14px;
+
         transition:
           transform 0.25s ease,
           border-color 0.25s ease,
           background 0.25s ease;
+
         cursor: pointer;
+
+        animation: wordCardIn 0.3s ease both;
       }
 
       .dictionary-word:hover {
         transform: translateY(-3px);
+
         background: var(--surface-2);
+
         border-color: rgba(139, 92, 246, 0.4);
+      }
+
+      .dictionary-word:focus-visible {
+        outline: 2px solid var(--accent);
+
+        outline-offset: 3px;
       }
 
       .dictionary-word-top {
         display: flex;
+
         justify-content: space-between;
+
         align-items: flex-start;
+
         gap: 15px;
       }
 
       .dictionary-word h2 {
         font-size: 21px;
+
         letter-spacing: -0.5px;
+
         margin-bottom: 5px;
+
+        overflow-wrap: anywhere;
       }
 
       .dictionary-word .part {
         color: var(--accent-light);
+
         font-size: 10px;
+
         text-transform: uppercase;
+
         font-weight: 700;
+
         letter-spacing: 1px;
       }
 
       .difficulty {
         padding: 5px 8px;
+
         border-radius: 6px;
+
         background: rgba(139, 92, 246, 0.08);
+
         color: var(--accent-light);
+
         font-size: 9px;
+
         font-weight: 700;
+
         white-space: nowrap;
       }
 
       .dictionary-word .meaning {
         color: var(--text-secondary);
+
         font-size: 13px;
+
         line-height: 1.6;
+
         margin-top: 13px;
       }
 
       .dictionary-word .bangla {
         color: var(--text);
+
         font-size: 13px;
+
         margin-top: 9px;
       }
 
       .dictionary-word .arrow {
         color: var(--text-muted);
+
         margin-top: 15px;
+
         font-size: 13px;
       }
 
+      @keyframes wordCardIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       /* =====================================================
-       PAGINATION
-    ===================================================== */
+         PAGINATION
+      ===================================================== */
 
       .pagination {
         display: flex;
+
         justify-content: center;
+
         align-items: center;
+
         gap: 6px;
+
         margin-top: 40px;
       }
 
       .pagination button {
         min-width: 36px;
+
         height: 36px;
+
         padding: 0 10px;
+
         border-radius: 8px;
+
         background: var(--surface);
+
         border: 1px solid var(--border);
+
         color: var(--text-secondary);
+
         font-size: 11px;
+
         cursor: pointer;
+
+        transition: 0.2s ease;
       }
 
-      .pagination button:hover,
+      .pagination button:hover:not(:disabled),
       .pagination button.active {
         background: var(--accent);
+
         color: white;
+
         border-color: var(--accent);
       }
 
       .pagination button:disabled {
         opacity: 0.4;
+
         cursor: not-allowed;
       }
 
       /* =====================================================
-       EMPTY
-    ===================================================== */
+         EMPTY STATE
+      ===================================================== */
 
       .empty-state {
         grid-column: 1 / -1;
+
         text-align: center;
+
         padding: 80px 20px;
+
         border: 1px dashed var(--border);
+
         border-radius: 16px;
+
         color: var(--text-muted);
+      }
+
+      .empty-state-icon {
+        margin-bottom: 15px;
+
+        font-size: 35px;
       }
 
       .empty-state h3 {
         color: var(--text);
+
         margin-bottom: 8px;
       }
 
+      .empty-state p {
+        font-size: 13px;
+
+        line-height: 1.7;
+
+        max-width: 450px;
+
+        margin: 0 auto 20px;
+      }
+
+      .empty-reset-button {
+        padding: 10px 15px;
+
+        border: none;
+
+        border-radius: 8px;
+
+        background: var(--accent);
+
+        color: white;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+      }
+
+      .empty-reset-button:hover {
+        transform: translateY(-2px);
+      }
+
       /* =====================================================
-       MOBILE
-    ===================================================== */
+         MOBILE
+      ===================================================== */
 
       @media (max-width: 800px) {
         .recent-list {
@@ -670,11 +1005,13 @@
 
         .dictionary-controls {
           flex-direction: column;
+
           align-items: stretch;
         }
 
         .filters {
           display: grid;
+
           grid-template-columns: 1fr 1fr;
         }
 
@@ -697,11 +1034,17 @@
         .recent-list {
           grid-template-columns: 1fr 1fr;
         }
+
+        .dictionary-search-box button {
+          padding-left: 15px;
+          padding-right: 15px;
+        }
       }
 
       @media (max-width: 600px) {
         .word-panel {
           width: 100%;
+
           border-left: none;
         }
 
@@ -716,11 +1059,41 @@
         .recent-section {
           padding: 18px;
         }
+
+        .word-actions {
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (max-width: 420px) {
         .recent-list {
           grid-template-columns: 1fr;
+        }
+
+        .filters {
+          grid-template-columns: 1fr;
+        }
+
+        .dictionary-search-box {
+          padding: 4px;
+        }
+
+        .dictionary-search-box span {
+          display: none;
+        }
+
+        .dictionary-search-box input {
+          padding-left: 10px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
@@ -728,63 +1101,81 @@
 
   <body>
     <!-- =====================================================
-       NAVBAR
-  ===================================================== -->
+         NAVBAR
+    ===================================================== -->
 
     <header class="navbar">
       <div class="nav-container">
         <a href="index.html" class="logo">
-          <span class="logo-mark"> AB </span>
-
-          <span class="logo-text"> Dictionary </span>
+          <span class="logo-mark">AB</span>
+          <span class="logo-text">Dictionary</span>
         </a>
 
         <nav class="nav-links">
           <a href="index.html" class="nav-link"> Home </a>
 
-          <a href="dictionary.html" class="nav-link active"> Dictionary </a>
+          <a href="dictionary.html" class="nav-link"> Dictionary </a>
 
           <a href="learn.html" class="nav-link"> Learn </a>
 
           <a href="quiz.html" class="nav-link"> Quiz </a>
 
           <a href="favorites.html" class="nav-link"> Favorites </a>
+
+          <a href="achievements.html" class="nav-link"> Achievements </a>
         </nav>
 
         <div class="nav-actions">
-          <button class="icon-button" id="theme-toggle" type="button">◐</button>
+          <button
+            class="icon-button"
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+          >
+            ◐
+          </button>
 
-          <button class="menu-button" id="menu-toggle" type="button">☰</button>
+          <button
+            class="menu-button"
+            id="menu-toggle"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+          >
+            ☰
+          </button>
         </div>
       </div>
     </header>
 
     <!-- =====================================================
-       MOBILE MENU
-  ===================================================== -->
+         MOBILE MENU
+    ===================================================== -->
 
     <div class="mobile-menu" id="mobile-menu">
-      <a href="index.html"> Home </a>
+      <a href="index.html">Home</a>
 
-      <a href="dictionary.html"> Dictionary </a>
+      <a href="dictionary.html">Dictionary</a>
 
-      <a href="learn.html"> Learn </a>
+      <a href="learn.html">Learn</a>
 
-      <a href="quiz.html"> Quiz </a>
+      <a href="quiz.html">Quiz</a>
 
-      <a href="favorites.html"> Favorites </a>
+      <a href="favorites.html">Favorites</a>
+
+      <a href="achievements.html">Achievements</a>
     </div>
 
     <!-- =====================================================
-       MAIN
-  ===================================================== -->
+         MAIN
+    ===================================================== -->
 
     <main>
       <section class="dictionary-page">
         <div class="section">
           <!-- =================================================
-             HEADER
-        ================================================= -->
+               HEADER
+          ================================================= -->
 
           <div class="dictionary-header">
             <span class="section-label"> VOCABULARY COLLECTION </span>
@@ -800,13 +1191,15 @@
 
             <div class="dictionary-search">
               <div class="dictionary-search-box">
-                <span> ⌕ </span>
+                <span aria-hidden="true"> ⌕ </span>
 
                 <input
                   type="text"
                   id="dictionary-search"
                   placeholder="Search thousands of words..."
                   autocomplete="off"
+                  spellcheck="false"
+                  aria-label="Search dictionary"
                 />
 
                 <button id="dictionary-search-button" type="button">
@@ -827,18 +1220,18 @@
           </div>
 
           <!-- =================================================
-             WORD DETAILS OVERLAY
-        ================================================= -->
+               WORD DETAILS OVERLAY
+          ================================================= -->
 
           <div class="word-overlay" id="word-overlay" aria-hidden="true">
             <div class="word-backdrop" id="word-backdrop"></div>
 
-            <aside class="word-panel" id="word-panel">
+            <aside class="word-panel" id="word-panel" aria-label="Word details">
               <button
                 class="word-close"
                 id="word-close"
                 type="button"
-                aria-label="Close"
+                aria-label="Close word details"
               >
                 ×
               </button>
@@ -848,18 +1241,21 @@
           </div>
 
           <!-- =================================================
-             ALPHABET + FILTERS
-        ================================================= -->
+               ALPHABET + FILTERS
+          ================================================= -->
 
           <div class="dictionary-controls">
-            <div class="alphabet" id="alphabet">
-              <button data-letter="ALL" class="active" type="button">
-                ALL
-              </button>
-            </div>
+            <div
+              class="alphabet"
+              id="alphabet"
+              aria-label="Filter by first letter"
+            ></div>
 
             <div class="filters">
-              <label for="difficulty-filter" class="sr-only">Difficulty</label>
+              <label for="difficulty-filter" class="sr-only">
+                Difficulty
+              </label>
+
               <select id="difficulty-filter" class="filter-select">
                 <option value="all">All Levels</option>
 
@@ -872,7 +1268,8 @@
                 <option value="Expert">Expert</option>
               </select>
 
-              <label for="category-filter" class="sr-only">Category</label>
+              <label for="category-filter" class="sr-only"> Category </label>
+
               <select id="category-filter" class="filter-select">
                 <option value="all">All Categories</option>
               </select>
@@ -880,13 +1277,14 @@
           </div>
 
           <!-- =================================================
-             RECENTLY VIEWED
+               RECENTLY VIEWED
+          ================================================= -->
 
-             IMPORTANT:
-             This is OUTSIDE word-list.
-        ================================================= -->
-
-          <section class="recent-section" id="recent-section">
+          <section
+            class="recent-section"
+            id="recent-section"
+            style="display: none"
+          >
             <div class="recent-header">
               <div>
                 <span class="section-label"> YOUR ACTIVITY </span>
@@ -909,8 +1307,8 @@
           </section>
 
           <!-- =================================================
-             RESULTS HEADER
-        ================================================= -->
+               RESULTS HEADER
+          ================================================= -->
 
           <div class="results-header">
             <span id="result-count"> Loading words... </span>
@@ -919,33 +1317,34 @@
           </div>
 
           <!-- =================================================
-             WORD LIST
-        ================================================= -->
+               WORD LIST
+          ================================================= -->
 
-          <div class="word-list" id="word-list">
-            <!-- JavaScript inserts word cards here -->
-          </div>
+          <div class="word-list" id="word-list"></div>
 
           <!-- =================================================
-             PAGINATION
-        ================================================= -->
+               PAGINATION
+          ================================================= -->
 
-          <div class="pagination" id="pagination"></div>
+          <div
+            class="pagination"
+            id="pagination"
+            aria-label="Dictionary pagination"
+          ></div>
         </div>
       </section>
     </main>
 
     <!-- =====================================================
-       FOOTER
-  ===================================================== -->
+         FOOTER
+    ===================================================== -->
 
     <footer class="footer">
       <div class="footer-container">
         <div>
           <a href="index.html" class="logo">
-            <span class="logo-mark"> AB </span>
-
-            <span class="logo-text"> Dictionary </span>
+            <span class="logo-mark">AB</span>
+            <span class="logo-text">Dictionary</span>
           </a>
 
           <p class="footer-description">
@@ -970,11 +1369,10 @@
     </footer>
 
     <!-- =====================================================
-       JAVASCRIPT
-  ===================================================== -->
+         JAVASCRIPT
+    ===================================================== -->
 
     <script src="js/app.js"></script>
-
     <script src="js/dictionary.js"></script>
   </body>
 </html>

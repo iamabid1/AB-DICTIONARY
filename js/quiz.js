@@ -1,102 +1,156 @@
 /* =====================================================
    AB DICTIONARY
-   QUIZ ENGINE V2
+   QUIZ ENGINE V3
 ===================================================== */
 
+"use strict";
+
 /* =====================================================
-   DATA
+   CONFIG
+===================================================== */
+
+const TOTAL_QUESTIONS = 10;
+const ANSWERS_PER_QUESTION = 4;
+
+const STORAGE = {
+  BEST_SCORE: "abDictionaryQuizBestScore",
+  BEST_XP: "abDictionaryQuizBestXP",
+  TOTAL_XP: "abDictionaryQuizTotalXP",
+  STREAK: "abDictionaryQuizStreak",
+  LAST_DATE: "abDictionaryLastQuizDate",
+  HISTORY: "abDictionaryQuizHistory",
+};
+
+/*
+   XP required to reach each level.
+*/
+const XP_LEVELS = [0, 100, 250, 500, 850, 1300, 1850, 2500, 3300, 4250, 5500];
+
+const LEVEL_NAMES = [
+  "Beginner",
+  "Learner",
+  "Explorer",
+  "Word Builder",
+  "Vocabulary Student",
+  "Vocabulary Builder",
+  "Word Master",
+  "Advanced Learner",
+  "Vocabulary Expert",
+  "Dictionary Master",
+  "Grand Word Master",
+];
+
+const DIFFICULTY_XP = {
+  all: 10,
+  Easy: 10,
+  Medium: 15,
+  Hard: 20,
+  Expert: 30,
+};
+
+/* =====================================================
+   STATE
 ===================================================== */
 
 let quizWords = [];
-
 let quizQuestions = [];
 
 let currentQuestion = 0;
-
-let quizScore = 0;
-
 let quizCorrect = 0;
-
 let quizWrong = 0;
 
 let selectedDifficulty = "all";
 
 let missedWords = [];
-
 let answeredCurrentQuestion = false;
+let quizFinished = false;
 
 /* =====================================================
-   SETTINGS
-===================================================== */
-
-const TOTAL_QUESTIONS = 10;
-
-const ANSWERS_PER_QUESTION = 4;
-
-const BEST_SCORE_KEY = "abDictionaryQuizBestScore";
-
-const BEST_XP_KEY = "abDictionaryQuizBestXP";
-
-const TOTAL_XP_KEY = "abDictionaryQuizTotalXP";
-
-const QUIZ_STREAK_KEY = "abDictionaryQuizStreak";
-
-const LAST_QUIZ_DATE_KEY = "abDictionaryLastQuizDate";
-
-/* =====================================================
-   ELEMENTS
+   DOM
 ===================================================== */
 
 const quizSetup = document.getElementById("quiz-setup");
-
 const quizContainer = document.getElementById("quiz-container");
-
 const quizResult = document.getElementById("quiz-result");
 
 const startQuizButton = document.getElementById("start-quiz");
-
 const restartQuizButton = document.getElementById("restart-quiz");
 
-const difficultyOptions = document.querySelectorAll(".quiz-option");
-
 const questionElement = document.getElementById("quiz-question");
-
 const questionSubtitle = document.getElementById("quiz-question-subtitle");
 
 const answersContainer = document.getElementById("quiz-answers");
 
 const progressText = document.getElementById("quiz-progress-text");
-
 const progressBar = document.getElementById("quiz-progress-bar");
 
 const scoreElement = document.getElementById("quiz-score");
 
 const feedback = document.getElementById("quiz-feedback");
-
 const feedbackTitle = document.getElementById("quiz-feedback-title");
-
 const feedbackText = document.getElementById("quiz-feedback-text");
 
 const nextButton = document.getElementById("next-question");
 
 const resultScore = document.getElementById("result-score");
-
 const resultCorrect = document.getElementById("result-correct");
-
 const resultWrong = document.getElementById("result-wrong");
-
 const resultBest = document.getElementById("result-best");
-
 const resultMessage = document.getElementById("result-message");
 
 const xpTotalElement = document.getElementById("quiz-xp-total");
-
 const xpBestElement = document.getElementById("quiz-xp-best");
-
 const xpStreakElement = document.getElementById("quiz-xp-streak");
 
+const xpLevelElement = document.getElementById("quiz-xp-level");
+const xpProgressElement = document.getElementById("quiz-xp-progress");
+const xpNextElement = document.getElementById("quiz-xp-next");
+
 /* =====================================================
-   LOAD WORDS
+   HELPERS
+===================================================== */
+
+function shuffle(array) {
+  const copy = [...array];
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const random = Math.floor(Math.random() * (i + 1));
+
+    [copy[i], copy[random]] = [copy[random], copy[i]];
+  }
+
+  return copy;
+}
+
+function normalize(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* =====================================================
+   STORAGE HELPERS
+===================================================== */
+
+function getNumber(key) {
+  return Number(localStorage.getItem(key) || 0);
+}
+
+function setNumber(key, value) {
+  localStorage.setItem(key, String(value));
+}
+
+/* =====================================================
+   LOAD DICTIONARY
 ===================================================== */
 
 async function loadQuizWords() {
@@ -110,7 +164,7 @@ async function loadQuizWords() {
     const data = await response.json();
 
     if (!Array.isArray(data)) {
-      throw new Error("Dictionary data is not an array.");
+      throw new Error("words.json must contain an array.");
     }
 
     quizWords = data.filter((word) => {
@@ -126,12 +180,12 @@ async function loadQuizWords() {
     });
 
     if (quizWords.length < ANSWERS_PER_QUESTION) {
-      throw new Error("Not enough valid dictionary words.");
+      throw new Error("Not enough dictionary words.");
     }
 
-    console.log(`AB Dictionary Quiz loaded ${quizWords.length} words.`);
+    updateDifficultyCounts();
 
-    updateQuizSetupStats();
+    console.log(`AB Dictionary Quiz loaded ${quizWords.length} valid words.`);
   } catch (error) {
     console.error("Quiz loading error:", error);
 
@@ -139,9 +193,8 @@ async function loadQuizWords() {
       quizSetup.innerHTML = `
         <div class="empty-state">
           <h3>Unable to load quiz</h3>
-
           <p>
-            Make sure data/words.json exists
+            Make sure <strong>data/words.json</strong> exists
             and contains valid dictionary data.
           </p>
         </div>
@@ -151,56 +204,27 @@ async function loadQuizWords() {
 }
 
 /* =====================================================
-   HTML ESCAPE
-===================================================== */
-
-function escapeQuizHTML(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-/* =====================================================
-   SHUFFLE
-===================================================== */
-
-function shuffle(array) {
-  const copy = [...array];
-
-  for (let i = copy.length - 1; i > 0; i--) {
-    const randomIndex = Math.floor(Math.random() * (i + 1));
-
-    [copy[i], copy[randomIndex]] = [copy[randomIndex], copy[i]];
-  }
-
-  return copy;
-}
-
-/* =====================================================
    DIFFICULTY
 ===================================================== */
 
-difficultyOptions.forEach((option) => {
-  option.addEventListener("click", () => {
-    difficultyOptions.forEach((item) => {
-      item.classList.remove("active");
+function setupDifficultyButtons() {
+  const options = document.querySelectorAll(".quiz-option");
+
+  options.forEach((option) => {
+    option.addEventListener("click", () => {
+      options.forEach((item) => {
+        item.classList.remove("active");
+      });
+
+      option.classList.add("active");
+
+      selectedDifficulty = option.dataset.difficulty || "all";
     });
-
-    option.classList.add("active");
-
-    selectedDifficulty = option.dataset.difficulty || "all";
   });
-});
+}
 
-/* =====================================================
-   SETUP INFORMATION
-===================================================== */
-
-function updateQuizSetupStats() {
-  const stats = {
+function updateDifficultyCounts() {
+  const counts = {
     all: quizWords.length,
     Easy: quizWords.filter((word) => word.difficulty === "Easy").length,
     Medium: quizWords.filter((word) => word.difficulty === "Medium").length,
@@ -208,23 +232,20 @@ function updateQuizSetupStats() {
     Expert: quizWords.filter((word) => word.difficulty === "Expert").length,
   };
 
-  Object.entries(stats).forEach(([level, count]) => {
-    const element = document.querySelector(`[data-difficulty="${level}"]`);
+  Object.entries(counts).forEach(([level, count]) => {
+    const option = document.querySelector(
+      `.quiz-option[data-difficulty="${level}"]`,
+    );
 
-    if (!element) {
-      return;
-    }
+    if (!option) return;
 
-    const span = element.querySelector("span");
+    const span = option.querySelector("span");
 
-    if (!span) {
-      return;
-    }
-
-    if (level === "all") {
-      span.textContent = `${count.toLocaleString()} words`;
-    } else {
-      span.textContent = `${count.toLocaleString()} words`;
+    if (span) {
+      span.textContent =
+        level === "all"
+          ? `${count.toLocaleString()} words`
+          : `${count.toLocaleString()} words`;
     }
   });
 }
@@ -233,36 +254,8 @@ function updateQuizSetupStats() {
    START QUIZ
 ===================================================== */
 
-/* =====================================================
-   XP CARD
-===================================================== */
-
-function updateQuizXPCard() {
-  const totalXP = Number(localStorage.getItem(TOTAL_XP_KEY) || 0);
-  const bestXP = Number(localStorage.getItem(BEST_XP_KEY) || 0);
-  const streak = Number(localStorage.getItem(QUIZ_STREAK_KEY) || 0);
-
-  if (xpTotalElement) {
-    xpTotalElement.textContent = totalXP.toLocaleString();
-  }
-
-  if (xpBestElement) {
-    xpBestElement.textContent = bestXP.toLocaleString();
-  }
-
-  if (xpStreakElement) {
-    xpStreakElement.textContent = streak;
-  }
-}
-
-if (startQuizButton) {
-  startQuizButton.addEventListener("click", startQuiz);
-}
-
 function startQuiz() {
   let availableWords = [...quizWords];
-
-  /* Filter difficulty */
 
   if (selectedDifficulty !== "all") {
     availableWords = availableWords.filter(
@@ -271,30 +264,20 @@ function startQuiz() {
   }
 
   if (availableWords.length < ANSWERS_PER_QUESTION) {
-    alert("There are not enough words for this quiz level.");
+    alert("There are not enough words for this difficulty level.");
 
     return;
   }
 
-  /* Reset */
-
   currentQuestion = 0;
-
-  quizScore = 0;
-
   quizCorrect = 0;
-
   quizWrong = 0;
 
   missedWords = [];
-
   answeredCurrentQuestion = false;
-
-  /* Create fresh questions */
+  quizFinished = false;
 
   quizQuestions = createQuestions(availableWords);
-
-  /* Switch screens */
 
   if (quizSetup) {
     quizSetup.style.display = "none";
@@ -308,12 +291,12 @@ function startQuiz() {
     quizContainer.classList.add("active");
   }
 
+  showQuestion();
+
   window.scrollTo({
     top: 0,
     behavior: "smooth",
   });
-
-  showQuestion();
 }
 
 /* =====================================================
@@ -327,21 +310,13 @@ function createQuestions(words) {
   );
 
   return selectedWords.map((word) => {
-    const questionTypes = ["meaning", "bangla", "example"];
-
-    /*
-      Example questions require example data.
-      If unavailable, use meaning/bangla.
-    */
-
-    let availableTypes = ["meaning", "bangla"];
+    const types = ["meaning", "bangla"];
 
     if (typeof word.example === "string" && word.example.trim()) {
-      availableTypes.push("example");
+      types.push("example");
     }
 
-    const type =
-      availableTypes[Math.floor(Math.random() * availableTypes.length)];
+    const type = types[Math.floor(Math.random() * types.length)];
 
     return {
       word,
@@ -351,136 +326,46 @@ function createQuestions(words) {
 }
 
 /* =====================================================
-   QUESTION PROGRESS
+   QUESTION TEXT
 ===================================================== */
 
-function updateQuestionProgress() {
-  const total = quizQuestions.length;
-
-  const completed = currentQuestion;
-
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  if (progressText) {
-    progressText.textContent = `Question ${currentQuestion + 1} of ${total}`;
+function getAnswerText(word, type) {
+  if (type === "meaning") {
+    return word.meaning;
   }
 
-  if (progressBar) {
-    progressBar.style.width = `${percentage}%`;
+  if (type === "bangla") {
+    return word.bangla;
   }
+
+  return word.example;
 }
 
-/* =====================================================
-   SHOW QUESTION
-===================================================== */
-
-function showQuestion() {
-  if (currentQuestion >= quizQuestions.length) {
-    finishQuiz();
-
-    return;
+function getQuestionSubtitle(type) {
+  if (type === "meaning") {
+    return "Which option is the correct English meaning?";
   }
 
-  const question = quizQuestions[currentQuestion];
-
-  if (!question || !question.word) {
-    finishQuiz();
-
-    return;
+  if (type === "bangla") {
+    return "Which option is the correct Bangla meaning?";
   }
 
-  const word = question.word;
-
-  answeredCurrentQuestion = false;
-
-  updateQuestionProgress();
-
-  if (scoreElement) {
-    scoreElement.textContent = `Score: ${quizScore}`;
-  }
-
-  if (answersContainer) {
-    answersContainer.innerHTML = "";
-  }
-
-  if (feedback) {
-    feedback.classList.remove("show");
-  }
-
-  if (nextButton) {
-    nextButton.style.display = "none";
-  }
-
-  /* Word */
-
-  if (questionElement) {
-    questionElement.textContent = word.word;
-  }
-
-  /* Question type */
-
-  if (questionSubtitle) {
-    if (question.type === "meaning") {
-      questionSubtitle.textContent =
-        "Which option is the correct English meaning?";
-    } else if (question.type === "bangla") {
-      questionSubtitle.textContent =
-        "Which option is the correct Bangla meaning?";
-    } else {
-      questionSubtitle.textContent =
-        "Which option best matches this word's example?";
-    }
-  }
-
-  /* Generate answers */
-
-  const answers = generateAnswers(word, quizWords, question.type);
-
-  answers.forEach((answer, index) => {
-    const button = document.createElement("button");
-
-    button.type = "button";
-
-    button.className = "quiz-answer";
-
-    button.textContent = answer.text;
-
-    button.dataset.correct = String(answer.correct);
-
-    button.dataset.index = String(index);
-
-    button.addEventListener("click", () => {
-      handleAnswer(button, answer);
-    });
-
-    answersContainer.appendChild(button);
-  });
+  return "Which option best matches this example?";
 }
 
 /* =====================================================
    GENERATE ANSWERS
 ===================================================== */
 
-function generateAnswers(correctWord, allAvailableWords, type) {
-  let correctAnswer = "";
+function generateAnswers(correctWord, type) {
+  const correctAnswer = getAnswerText(correctWord, type);
 
-  if (type === "meaning") {
-    correctAnswer = correctWord.meaning;
-  } else if (type === "bangla") {
-    correctAnswer = correctWord.bangla;
-  } else {
-    correctAnswer = correctWord.example;
+  if (!correctAnswer) {
+    return [];
   }
 
-  /*
-    Find possible wrong answers.
-
-    For example questions, only words with
-    examples can be used.
-  */
-
-  let candidateWords = allAvailableWords.filter((word) => {
-    if (word.word.toLowerCase() === correctWord.word.toLowerCase()) {
+  const candidates = quizWords.filter((word) => {
+    if (normalize(word.word) === normalize(correctWord.word)) {
       return false;
     }
 
@@ -491,36 +376,22 @@ function generateAnswers(correctWord, allAvailableWords, type) {
     return true;
   });
 
-  candidateWords = shuffle(candidateWords);
+  const used = new Set([normalize(correctAnswer)]);
 
   const wrongAnswers = [];
 
-  const usedTexts = new Set();
+  for (const word of shuffle(candidates)) {
+    const text = getAnswerText(word, type);
 
-  usedTexts.add(String(correctAnswer).toLowerCase());
+    if (!text) continue;
 
-  for (const word of candidateWords) {
-    let text = "";
+    const normalized = normalize(text);
 
-    if (type === "meaning") {
-      text = word.meaning;
-    } else if (type === "bangla") {
-      text = word.bangla;
-    } else {
-      text = word.example;
-    }
-
-    if (!text) {
+    if (used.has(normalized)) {
       continue;
     }
 
-    const normalized = String(text).trim().toLowerCase();
-
-    if (usedTexts.has(normalized)) {
-      continue;
-    }
-
-    usedTexts.add(normalized);
+    used.add(normalized);
 
     wrongAnswers.push({
       text,
@@ -532,15 +403,104 @@ function generateAnswers(correctWord, allAvailableWords, type) {
     }
   }
 
-  const answers = [
+  return shuffle([
     {
       text: correctAnswer,
       correct: true,
     },
     ...wrongAnswers,
-  ];
+  ]);
+}
 
-  return shuffle(answers);
+/* =====================================================
+   SHOW QUESTION
+===================================================== */
+
+function showQuestion() {
+  if (quizFinished || currentQuestion >= quizQuestions.length) {
+    finishQuiz();
+    return;
+  }
+
+  const current = quizQuestions[currentQuestion];
+
+  if (!current || !current.word) {
+    finishQuiz();
+    return;
+  }
+
+  answeredCurrentQuestion = false;
+
+  const word = current.word;
+
+  const answers = generateAnswers(word, current.type);
+
+  if (answers.length < 2) {
+    currentQuestion++;
+
+    showQuestion();
+
+    return;
+  }
+
+  if (progressText) {
+    progressText.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+  }
+
+  if (progressBar) {
+    const progress = (currentQuestion / quizQuestions.length) * 100;
+
+    progressBar.style.width = `${progress}%`;
+  }
+
+  if (scoreElement) {
+    scoreElement.textContent = `Score: ${quizCorrect}`;
+  }
+
+  if (questionElement) {
+    questionElement.textContent = word.word;
+  }
+
+  if (questionSubtitle) {
+    questionSubtitle.textContent = getQuestionSubtitle(current.type);
+  }
+
+  if (answersContainer) {
+    answersContainer.innerHTML = "";
+
+    answers.forEach((answer, index) => {
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "quiz-answer";
+
+      button.textContent = answer.text;
+
+      button.dataset.correct = String(answer.correct);
+
+      button.dataset.index = String(index);
+
+      button.setAttribute("aria-label", `Answer ${index + 1}: ${answer.text}`);
+
+      button.addEventListener("click", () => {
+        handleAnswer(button, answer);
+      });
+
+      answersContainer.appendChild(button);
+    });
+  }
+
+  if (feedback) {
+    feedback.classList.remove("show");
+  }
+
+  if (nextButton) {
+    nextButton.classList.add("is-hidden");
+    nextButton.textContent =
+      currentQuestion === quizQuestions.length - 1
+        ? "Finish Quiz →"
+        : "Next Question →";
+  }
 }
 
 /* =====================================================
@@ -558,13 +518,7 @@ function handleAnswer(clickedButton, answer) {
 
   buttons.forEach((button) => {
     button.disabled = true;
-  });
 
-  /*
-    Always reveal correct answer.
-  */
-
-  buttons.forEach((button) => {
     if (button.dataset.correct === "true") {
       button.classList.add("correct");
     }
@@ -572,52 +526,36 @@ function handleAnswer(clickedButton, answer) {
 
   const current = quizQuestions[currentQuestion];
 
-  const correctWord = current.word;
-
-  /* =================================================
-     CORRECT
-  ================================================= */
+  const word = current.word;
 
   if (answer.correct) {
-    clickedButton.classList.add("correct");
-
     quizCorrect++;
 
-    quizScore++;
+    clickedButton.classList.add("correct");
 
     if (feedbackTitle) {
       feedbackTitle.textContent = "✓ Correct!";
     }
 
     if (feedbackText) {
-      feedbackText.textContent = `"${correctWord.word}" was the correct answer.`;
+      feedbackText.textContent = `"${word.word}" was correct.`;
     }
   } else {
-    /* =================================================
-     WRONG
-  ================================================= */
-    clickedButton.classList.add("wrong");
-
     quizWrong++;
 
-    missedWords.push(correctWord);
+    missedWords.push(word);
+
+    clickedButton.classList.add("wrong");
 
     if (feedbackTitle) {
       feedbackTitle.textContent = "✕ Not quite.";
     }
 
-    let correctAnswer = "";
-
-    if (current.type === "meaning") {
-      correctAnswer = correctWord.meaning;
-    } else if (current.type === "bangla") {
-      correctAnswer = correctWord.bangla;
-    } else {
-      correctAnswer = correctWord.example;
-    }
-
     if (feedbackText) {
-      feedbackText.textContent = `Correct answer: ${correctAnswer}`;
+      feedbackText.textContent = `Correct answer: ${getAnswerText(
+        word,
+        current.type,
+      )}`;
     }
   }
 
@@ -626,113 +564,263 @@ function handleAnswer(clickedButton, answer) {
   }
 
   if (scoreElement) {
-    scoreElement.textContent = `Score: ${quizScore}`;
+    scoreElement.textContent = `Score: ${quizCorrect}`;
   }
 
   if (nextButton) {
-    nextButton.style.display = "block";
+    nextButton.classList.remove("is-hidden");
 
-    if (currentQuestion === quizQuestions.length - 1) {
-      nextButton.textContent = "Finish Quiz →";
-    } else {
-      nextButton.textContent = "Next Question →";
-    }
+    nextButton.textContent =
+      currentQuestion === quizQuestions.length - 1
+        ? "Finish Quiz →"
+        : "Next Question →";
   }
 }
 
 /* =====================================================
-   NEXT QUESTION
+   NEXT
 ===================================================== */
 
-if (nextButton) {
-  nextButton.addEventListener("click", () => {
-    if (!answeredCurrentQuestion) {
-      return;
-    }
+function nextQuestion() {
+  if (!answeredCurrentQuestion) {
+    return;
+  }
 
-    currentQuestion++;
+  currentQuestion++;
 
-    showQuestion();
-  });
+  showQuestion();
 }
 
 /* =====================================================
    XP SYSTEM
 ===================================================== */
 
-function calculateXP() {
-  let xp = 0;
+function getTotalXP() {
+  return getNumber(STORAGE.TOTAL_XP);
+}
 
-  /*
-    Base XP:
-    10 points for every correct answer.
-  */
+function getLevel(xp) {
+  let level = 1;
 
-  xp += quizCorrect * 10;
-
-  /*
-    Difficulty bonus.
-  */
-
-  const difficultyBonus = {
-    all: 0,
-    Easy: 0,
-    Medium: 5,
-    Hard: 10,
-    Expert: 20,
-  };
-
-  xp += (difficultyBonus[selectedDifficulty] || 0) * quizCorrect;
-
-  /*
-    Perfect quiz bonus.
-  */
-
-  if (quizQuestions.length > 0 && quizCorrect === quizQuestions.length) {
-    xp += 50;
+  for (let i = 0; i < XP_LEVELS.length; i++) {
+    if (xp >= XP_LEVELS[i]) {
+      level = i + 1;
+    } else {
+      break;
+    }
   }
 
-  return xp;
+  return level;
+}
+
+function getLevelData(xp) {
+  const level = getLevel(xp);
+
+  if (level >= XP_LEVELS.length) {
+    return {
+      level,
+      name: LEVEL_NAMES[level - 1],
+      progress: 100,
+      currentXP: xp,
+      requiredXP: 0,
+      nextXP: xp,
+      max: true,
+    };
+  }
+
+  const currentLevelXP = XP_LEVELS[level - 1];
+
+  const nextLevelXP = XP_LEVELS[level];
+
+  const requiredXP = nextLevelXP - currentLevelXP;
+
+  const currentXP = xp - currentLevelXP;
+
+  return {
+    level,
+    name: LEVEL_NAMES[level - 1],
+    progress: Math.min(100, Math.max(0, (currentXP / requiredXP) * 100)),
+    currentXP,
+    requiredXP,
+    nextXP: nextLevelXP,
+    max: false,
+  };
+}
+
+function calculateQuizXP() {
+  const baseXP =
+    quizCorrect * (DIFFICULTY_XP[selectedDifficulty] || DIFFICULTY_XP.all);
+
+  let bonusXP = 0;
+
+  /* Perfect bonus */
+  if (quizCorrect === quizQuestions.length && quizQuestions.length > 0) {
+    bonusXP += 50;
+  }
+
+  /* Accuracy bonus */
+  const percentage =
+    quizQuestions.length > 0 ? (quizCorrect / quizQuestions.length) * 100 : 0;
+
+  if (percentage >= 80) {
+    bonusXP += 20;
+  }
+
+  /* Streak bonus */
+  const currentStreak = getNumber(STORAGE.STREAK);
+
+  if (currentStreak >= 3) {
+    bonusXP += Math.min(currentStreak * 5, 50);
+  }
+
+  return baseXP + bonusXP;
 }
 
 /* =====================================================
-   QUIZ STREAK
+   SAVE XP
 ===================================================== */
 
-function getTodayString() {
-  const now = new Date();
+function saveXP(xp) {
+  const oldXP = getTotalXP();
 
-  const year = now.getFullYear();
+  const newXP = oldXP + xp;
 
-  const month = String(now.getMonth() + 1).padStart(2, "0");
+  setNumber(STORAGE.TOTAL_XP, newXP);
 
-  const day = String(now.getDate()).padStart(2, "0");
+  const oldBest = getNumber(STORAGE.BEST_XP);
+
+  setNumber(STORAGE.BEST_XP, Math.max(oldBest, xp));
+
+  const oldLevel = getLevel(oldXP);
+  const newLevel = getLevel(newXP);
+
+  if (newLevel > oldLevel) {
+    showLevelUp(newLevel);
+  }
+
+  updateXPUI();
+
+  return {
+    oldXP,
+    newXP,
+    bestXP: Math.max(oldBest, xp),
+  };
+}
+
+/* =====================================================
+   XP UI
+===================================================== */
+
+function updateXPUI() {
+  const xp = getTotalXP();
+
+  const data = getLevelData(xp);
+
+  if (xpTotalElement) {
+    xpTotalElement.textContent = xp.toLocaleString();
+  }
+
+  if (xpBestElement) {
+    xpBestElement.textContent = getNumber(STORAGE.BEST_XP).toLocaleString();
+  }
+
+  if (xpStreakElement) {
+    xpStreakElement.textContent = getNumber(STORAGE.STREAK);
+  }
+
+  if (xpLevelElement) {
+    xpLevelElement.textContent = `Level ${data.level} • ${data.name}`;
+  }
+
+  if (xpProgressElement) {
+    xpProgressElement.style.width = `${data.progress}%`;
+  }
+
+  if (xpNextElement) {
+    if (data.max) {
+      xpNextElement.textContent = "MAX LEVEL";
+    } else {
+      xpNextElement.textContent = `${data.nextXP - xp} XP until next level`;
+    }
+  }
+}
+
+/* =====================================================
+   LEVEL UP
+===================================================== */
+
+function showLevelUp(level) {
+  const existing = document.querySelector(".xp-level-up");
+
+  if (existing) {
+    existing.remove();
+  }
+
+  const message = document.createElement("div");
+
+  message.className = "xp-level-up";
+
+  message.innerHTML = `
+    <div class="xp-level-up-inner">
+      <span class="xp-level-up-icon">🏆</span>
+
+      <strong>LEVEL UP!</strong>
+
+      <span>
+        You reached Level ${level}
+      </span>
+
+      <small>
+        ${escapeHTML(LEVEL_NAMES[level - 1] || "Grand Word Master")}
+      </small>
+    </div>
+  `;
+
+  document.body.appendChild(message);
+
+  requestAnimationFrame(() => {
+    message.classList.add("show");
+  });
+
+  setTimeout(() => {
+    message.classList.remove("show");
+
+    setTimeout(() => {
+      message.remove();
+    }, 400);
+  }, 3000);
+}
+
+/* =====================================================
+   STREAK
+===================================================== */
+
+function getDateString(date = new Date()) {
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
-function getYesterdayString() {
-  const yesterday = new Date();
+function getYesterday() {
+  const date = new Date();
 
-  yesterday.setDate(yesterday.getDate() - 1);
+  date.setDate(date.getDate() - 1);
 
-  const year = yesterday.getFullYear();
-
-  const month = String(yesterday.getMonth() + 1).padStart(2, "0");
-
-  const day = String(yesterday.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return getDateString(date);
 }
 
-function updateQuizStreak() {
-  const today = getTodayString();
+function updateStreak() {
+  const today = getDateString();
 
-  const yesterday = getYesterdayString();
+  const yesterday = getYesterday();
 
-  const lastDate = localStorage.getItem(LAST_QUIZ_DATE_KEY);
+  const lastDate = localStorage.getItem(STORAGE.LAST_DATE);
 
-  let streak = Number(localStorage.getItem(QUIZ_STREAK_KEY) || 0);
+  let streak = getNumber(STORAGE.STREAK);
 
   if (lastDate === today) {
     return streak;
@@ -744,34 +832,46 @@ function updateQuizStreak() {
     streak = 1;
   }
 
-  localStorage.setItem(QUIZ_STREAK_KEY, String(streak));
+  setNumber(STORAGE.STREAK, streak);
 
-  localStorage.setItem(LAST_QUIZ_DATE_KEY, today);
+  localStorage.setItem(STORAGE.LAST_DATE, today);
 
   return streak;
 }
 
 /* =====================================================
-   SAVE XP
+   QUIZ HISTORY
 ===================================================== */
 
-function saveQuizXP(xp) {
-  const oldTotal = Number(localStorage.getItem(TOTAL_XP_KEY) || 0);
+function saveQuizHistory(xp, percentage) {
+  let history = [];
 
-  const newTotal = oldTotal + xp;
+  try {
+    history = JSON.parse(localStorage.getItem(STORAGE.HISTORY) || "[]");
 
-  localStorage.setItem(TOTAL_XP_KEY, String(newTotal));
+    if (!Array.isArray(history)) {
+      history = [];
+    }
+  } catch {
+    history = [];
+  }
 
-  const oldBest = Number(localStorage.getItem(BEST_XP_KEY) || 0);
+  history.unshift({
+    date: new Date().toISOString(),
+    difficulty: selectedDifficulty,
+    total: quizQuestions.length,
+    correct: quizCorrect,
+    wrong: quizWrong,
+    percentage,
+    xp,
+  });
 
-  const bestXP = Math.max(oldBest, xp);
+  /*
+     Keep the latest 50 quizzes.
+  */
+  history = history.slice(0, 50);
 
-  localStorage.setItem(BEST_XP_KEY, String(bestXP));
-
-  return {
-    totalXP: newTotal,
-    bestXP,
-  };
+  localStorage.setItem(STORAGE.HISTORY, JSON.stringify(history));
 }
 
 /* =====================================================
@@ -779,6 +879,12 @@ function saveQuizXP(xp) {
 ===================================================== */
 
 function finishQuiz() {
+  if (quizFinished) {
+    return;
+  }
+
+  quizFinished = true;
+
   if (quizContainer) {
     quizContainer.classList.remove("active");
   }
@@ -791,13 +897,23 @@ function finishQuiz() {
 
   const percentage = total > 0 ? Math.round((quizCorrect / total) * 100) : 0;
 
-  /* Complete progress */
+  const earnedXP = calculateQuizXP();
 
-  if (progressBar) {
-    progressBar.style.width = "100%";
-  }
+  const streak = updateStreak();
 
-  /* Basic result */
+  const xpData = saveXP(earnedXP);
+
+  saveQuizHistory(earnedXP, percentage);
+
+  /* Best score */
+
+  const oldBest = getNumber(STORAGE.BEST_SCORE);
+
+  const best = Math.max(oldBest, percentage);
+
+  setNumber(STORAGE.BEST_SCORE, best);
+
+  /* UI */
 
   if (resultScore) {
     resultScore.textContent = `${percentage}%`;
@@ -811,49 +927,21 @@ function finishQuiz() {
     resultWrong.textContent = quizWrong;
   }
 
-  /* Best score */
-
-  const oldBest = Number(localStorage.getItem(BEST_SCORE_KEY) || 0);
-
-  const best = Math.max(oldBest, percentage);
-
-  localStorage.setItem(BEST_SCORE_KEY, String(best));
-
   if (resultBest) {
     resultBest.textContent = `${best}%`;
   }
 
-  /* XP */
-
-  /* XP */
-
-  const earnedXP = calculateXP();
-
-  const xpData = saveQuizXP(earnedXP);
-
-  /* Streak */
-
-  const streak = updateQuizStreak();
-
-  updateQuizXPCard();
-
-  /* Message */
-
-  if (resultMessage) {
-    if (percentage === 100) {
-      resultMessage.textContent = `Perfect score. +${earnedXP} XP. 🔥 Your vocabulary is seriously strong.`;
-    } else if (percentage >= 80) {
-      resultMessage.textContent = `Excellent work. +${earnedXP} XP. Keep pushing your vocabulary higher.`;
-    } else if (percentage >= 60) {
-      resultMessage.textContent = `Good job. +${earnedXP} XP. A little more practice and you'll go even higher.`;
-    } else if (percentage >= 40) {
-      resultMessage.textContent = `Not bad. +${earnedXP} XP. Review the missed words and try again.`;
-    } else {
-      resultMessage.textContent = `Keep learning. +${earnedXP} XP earned. Every attempt helps you improve.`;
-    }
+  if (progressBar) {
+    progressBar.style.width = "100%";
   }
 
-  addResultExtras(earnedXP, xpData.totalXP, xpData.bestXP, streak);
+  if (resultMessage) {
+    resultMessage.textContent = getResultMessage(percentage, earnedXP, streak);
+  }
+
+  addResultExtras(earnedXP, xpData.newXP, xpData.bestXP, streak);
+
+  updateXPUI();
 
   window.scrollTo({
     top: 0,
@@ -862,7 +950,31 @@ function finishQuiz() {
 }
 
 /* =====================================================
-   RESULT EXTRA INFORMATION
+   RESULT MESSAGE
+===================================================== */
+
+function getResultMessage(percentage, xp, streak) {
+  if (percentage === 100) {
+    return `Perfect score. +${xp} XP earned. 🔥 ${streak} quiz streak.`;
+  }
+
+  if (percentage >= 80) {
+    return `Excellent work. +${xp} XP earned. 🔥 ${streak} quiz streak.`;
+  }
+
+  if (percentage >= 60) {
+    return `Good job. +${xp} XP earned. Keep building your vocabulary.`;
+  }
+
+  if (percentage >= 40) {
+    return `You're getting there. +${xp} XP earned. Review your missed words and try again.`;
+  }
+
+  return `Keep learning. +${xp} XP earned. Every attempt helps you improve.`;
+}
+
+/* =====================================================
+   RESULT EXTRAS
 ===================================================== */
 
 function addResultExtras(earnedXP, totalXP, bestXP, streak) {
@@ -885,16 +997,30 @@ function addResultExtras(earnedXP, totalXP, bestXP, streak) {
 
     extras.style.gap = "10px";
 
-    const restartButton = document.getElementById("restart-quiz");
+    const restart = document.getElementById("restart-quiz");
 
-    if (restartButton) {
-      quizResult.insertBefore(extras, restartButton);
+    if (restart) {
+      quizResult.insertBefore(extras, restart);
     } else {
       quizResult.appendChild(extras);
     }
   }
 
   extras.innerHTML = `
+    ${createResultBox("XP EARNED", `+${earnedXP} XP`)}
+
+    ${createResultBox("QUIZ STREAK", `🔥 ${streak}`)}
+
+    ${createResultBox("TOTAL XP", totalXP.toLocaleString())}
+
+    ${createResultBox("BEST XP", bestXP.toLocaleString())}
+  `;
+
+  addReviewButton();
+}
+
+function createResultBox(label, value) {
+  return `
     <div
       style="
         padding:14px;
@@ -911,117 +1037,51 @@ function addResultExtras(earnedXP, totalXP, bestXP, streak) {
           margin-bottom:6px;
         "
       >
-        XP EARNED
+        ${escapeHTML(label)}
       </span>
 
       <strong>
-        +${earnedXP} XP
-      </strong>
-    </div>
-
-    <div
-      style="
-        padding:14px;
-        border:1px solid var(--border);
-        border-radius:10px;
-        background:var(--surface-2);
-      "
-    >
-      <span
-        style="
-          display:block;
-          color:var(--text-muted);
-          font-size:9px;
-          margin-bottom:6px;
-        "
-      >
-        QUIZ STREAK
-      </span>
-
-      <strong>
-        🔥 ${streak}
-      </strong>
-    </div>
-
-    <div
-      style="
-        padding:14px;
-        border:1px solid var(--border);
-        border-radius:10px;
-        background:var(--surface-2);
-      "
-    >
-      <span
-        style="
-          display:block;
-          color:var(--text-muted);
-          font-size:9px;
-          margin-bottom:6px;
-        "
-      >
-        TOTAL XP
-      </span>
-
-      <strong>
-        ${totalXP.toLocaleString()}
-      </strong>
-    </div>
-
-    <div
-      style="
-        padding:14px;
-        border:1px solid var(--border);
-        border-radius:10px;
-        background:var(--surface-2);
-      "
-    >
-      <span
-        style="
-          display:block;
-          color:var(--text-muted);
-          font-size:9px;
-          margin-bottom:6px;
-        "
-      >
-        BEST XP
-      </span>
-
-      <strong>
-        ${bestXP}
+        ${escapeHTML(value)}
       </strong>
     </div>
   `;
+}
 
-  /* Review button */
+/* =====================================================
+   MISSED WORDS BUTTON
+===================================================== */
 
-  let reviewButton = document.getElementById("review-missed-words");
+function addReviewButton() {
+  let button = document.getElementById("review-missed-words");
 
-  if (missedWords.length > 0) {
-    if (!reviewButton) {
-      reviewButton = document.createElement("button");
+  if (button) {
+    button.remove();
+  }
 
-      reviewButton.id = "review-missed-words";
+  if (!missedWords.length) {
+    return;
+  }
 
-      reviewButton.type = "button";
+  button = document.createElement("button");
 
-      reviewButton.className = "back-dictionary-button";
+  button.id = "review-missed-words";
 
-      const restartButton = document.getElementById("restart-quiz");
+  button.type = "button";
 
-      if (restartButton) {
-        quizResult.insertBefore(reviewButton, restartButton);
-      } else {
-        quizResult.appendChild(reviewButton);
-      }
-    }
+  button.className = "back-dictionary-button";
 
-    reviewButton.textContent = `Review ${missedWords.length} Missed Word${
-      missedWords.length === 1 ? "" : "s"
-    } →`;
+  button.textContent = `Review ${missedWords.length} Missed Word${
+    missedWords.length === 1 ? "" : "s"
+  } →`;
 
-    reviewButton.onclick = showMissedWords;
-  } else if (reviewButton) {
-    reviewButton.remove();
+  button.addEventListener("click", showMissedWords);
+
+  const restart = document.getElementById("restart-quiz");
+
+  if (restart) {
+    quizResult.insertBefore(button, restart);
+  } else {
+    quizResult.appendChild(button);
   }
 }
 
@@ -1034,12 +1094,12 @@ function showMissedWords() {
     return;
   }
 
-  if (quizContainer) {
-    quizContainer.classList.remove("active");
-  }
-
   if (quizResult) {
     quizResult.classList.remove("active");
+  }
+
+  if (quizContainer) {
+    quizContainer.classList.remove("active");
   }
 
   if (!quizSetup) {
@@ -1048,11 +1108,67 @@ function showMissedWords() {
 
   quizSetup.style.display = "block";
 
-  const originalContent = quizSetup.dataset.originalContent;
+  const wordsHTML = missedWords
+    .map((word) => {
+      return `
+          <div
+            style="
+              padding:17px;
+              border:1px solid var(--border);
+              border-radius:12px;
+              background:var(--surface-2);
+            "
+          >
+            <strong
+              style="
+                display:block;
+                font-size:18px;
+                margin-bottom:6px;
+              "
+            >
+              ${escapeHTML(word.word)}
+            </strong>
 
-  if (!originalContent) {
-    quizSetup.dataset.originalContent = quizSetup.innerHTML;
-  }
+            ${
+              word.pronunciation
+                ? `
+                  <span
+                    style="
+                      display:block;
+                      color:var(--text-muted);
+                      font-size:11px;
+                      margin-bottom:8px;
+                    "
+                  >
+                    ${escapeHTML(word.pronunciation)}
+                  </span>
+                `
+                : ""
+            }
+
+            <p
+              style="
+                color:var(--text-secondary);
+                font-size:12px;
+                line-height:1.6;
+                margin-bottom:6px;
+              "
+            >
+              ${escapeHTML(word.meaning)}
+            </p>
+
+            <p
+              style="
+                font-size:14px;
+                margin:0;
+              "
+            >
+              ${escapeHTML(word.bangla)}
+            </p>
+          </div>
+        `;
+    })
+    .join("");
 
   quizSetup.innerHTML = `
     <div style="margin-bottom:22px;">
@@ -1081,67 +1197,7 @@ function showMissedWords() {
         gap:10px;
       "
     >
-      ${missedWords
-        .map(
-          (word) => `
-            <div
-              style="
-                padding:17px;
-                border:1px solid var(--border);
-                border-radius:12px;
-                background:var(--surface-2);
-              "
-            >
-              <strong
-                style="
-                  display:block;
-                  font-size:18px;
-                  margin-bottom:6px;
-                "
-              >
-                ${escapeQuizHTML(word.word)}
-              </strong>
-
-              ${
-                word.pronunciation
-                  ? `
-                    <span
-                      style="
-                        display:block;
-                        color:var(--text-muted);
-                        font-size:11px;
-                        margin-bottom:8px;
-                      "
-                    >
-                      ${escapeQuizHTML(word.pronunciation)}
-                    </span>
-                  `
-                  : ""
-              }
-
-              <p
-                style="
-                  color:var(--text-secondary);
-                  font-size:12px;
-                  line-height:1.6;
-                  margin-bottom:6px;
-                "
-              >
-                ${escapeQuizHTML(word.meaning)}
-              </p>
-
-              <p
-                style="
-                  font-size:14px;
-                  margin:0;
-                "
-              >
-                ${escapeQuizHTML(word.bangla)}
-              </p>
-            </div>
-          `,
-        )
-        .join("")}
+      ${wordsHTML}
     </div>
 
     <button
@@ -1154,16 +1210,10 @@ function showMissedWords() {
     </button>
   `;
 
-  const backButton = document.getElementById("review-back-button");
+  const back = document.getElementById("review-back-button");
 
-  if (backButton) {
-    backButton.addEventListener("click", () => {
-      quizSetup.innerHTML = quizSetup.dataset.originalContent;
-
-      reinitializeDifficultyOptions();
-
-      quizSetup.style.display = "block";
-    });
+  if (back) {
+    back.addEventListener("click", restoreQuizSetup);
   }
 
   window.scrollTo({
@@ -1173,98 +1223,100 @@ function showMissedWords() {
 }
 
 /* =====================================================
-   REINITIALIZE DIFFICULTY BUTTONS
+   RESTORE SETUP
 ===================================================== */
 
-function reinitializeDifficultyOptions() {
-  const options = quizSetup.querySelectorAll(".quiz-option");
-
-  options.forEach((option) => {
-    option.addEventListener("click", () => {
-      options.forEach((item) => item.classList.remove("active"));
-
-      option.classList.add("active");
-
-      selectedDifficulty = option.dataset.difficulty || "all";
-    });
-  });
-
-  const newStart = quizSetup.querySelector("#start-quiz");
-
-  if (newStart) {
-    newStart.addEventListener("click", startQuiz);
-  }
+function restoreQuizSetup() {
+  window.location.reload();
 }
 
 /* =====================================================
    RESTART
 ===================================================== */
 
-if (restartQuizButton) {
-  restartQuizButton.addEventListener("click", () => {
-    if (quizResult) {
-      quizResult.classList.remove("active");
-    }
+function restartQuiz() {
+  if (quizResult) {
+    quizResult.classList.remove("active");
+  }
 
-    if (quizContainer) {
-      quizContainer.classList.remove("active");
-    }
+  if (quizContainer) {
+    quizContainer.classList.remove("active");
+  }
 
-    if (quizSetup) {
-      quizSetup.style.display = "block";
-    }
+  if (quizSetup) {
+    quizSetup.style.display = "block";
+  }
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+  quizFinished = false;
+
+  updateXPUI();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
   });
 }
 
 /* =====================================================
-   KEYBOARD SUPPORT
+   KEYBOARD
 ===================================================== */
 
-document.addEventListener("keydown", (event) => {
-  if (!quizContainer || !quizContainer.classList.contains("active")) {
-    return;
-  }
+function setupKeyboardControls() {
+  document.addEventListener("keydown", (event) => {
+    if (!quizContainer || !quizContainer.classList.contains("active")) {
+      return;
+    }
 
-  const answers = document.querySelectorAll(".quiz-answer:not(:disabled)");
+    const answers = document.querySelectorAll(".quiz-answer:not(:disabled)");
 
-  if (!answeredCurrentQuestion && answers.length) {
-    const key = event.key.toLowerCase();
+    if (!answeredCurrentQuestion && answers.length) {
+      const map = {
+        1: 0,
+        2: 1,
+        3: 2,
+        4: 3,
+      };
 
-    const indexMap = {
-      1: 0,
-      2: 1,
-      3: 2,
-      4: 3,
-    };
+      if (Object.prototype.hasOwnProperty.call(map, event.key)) {
+        const button = answers[map[event.key]];
 
-    if (Object.prototype.hasOwnProperty.call(indexMap, key)) {
-      const index = indexMap[key];
-
-      if (answers[index]) {
-        answers[index].click();
+        if (button) {
+          button.click();
+        }
       }
     }
-  }
 
-  if (
-    event.key === "Enter" &&
-    answeredCurrentQuestion &&
-    nextButton &&
-    nextButton.style.display !== "none"
-  ) {
-    nextButton.click();
-  }
-});
+    if (
+      event.key === "Enter" &&
+      answeredCurrentQuestion &&
+      nextButton &&
+      !nextButton.classList.contains("is-hidden")
+    ) {
+      nextButton.click();
+    }
+  });
+}
 
 /* =====================================================
-   START
+   INIT
 ===================================================== */
 
-updateQuizXPCard();
+document.addEventListener("DOMContentLoaded", () => {
+  setupDifficultyButtons();
+  setupKeyboardControls();
 
-loadQuizWords();
+  if (startQuizButton) {
+    startQuizButton.addEventListener("click", startQuiz);
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener("click", nextQuestion);
+  }
+
+  if (restartQuizButton) {
+    restartQuizButton.addEventListener("click", restartQuiz);
+  }
+
+  updateXPUI();
+  loadQuizWords();
+});

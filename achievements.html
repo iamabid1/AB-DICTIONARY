@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="Track your achievements and milestones on AB Dictionary."
+    />
+
+    <title>Achievements — AB Dictionary</title>
+
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+
+    <style>
+      /* =====================================================
+       AB DICTIONARY
+       ACHIEVEMENTS
+    ===================================================== */
+
+      .achievements-page {
+        padding: 90px 0 120px;
+      }
+
+      .achievements-header {
+        max-width: 760px;
+        margin: 0 auto 50px;
+        text-align: center;
+      }
+
+      .achievements-header h1 {
+        margin: 15px 0;
+        font-size: clamp(42px, 6vw, 64px);
+        line-height: 1;
+        letter-spacing: -3px;
+      }
+
+      .achievements-header p {
+        max-width: 650px;
+        margin: auto;
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      /* =====================================================
+       SUMMARY
+    ===================================================== */
+
+      .achievement-summary {
+        max-width: 900px;
+        margin: 0 auto 35px;
+
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .achievement-stat {
+        padding: 22px;
+        text-align: center;
+
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+
+      .achievement-stat span {
+        display: block;
+        margin-bottom: 8px;
+
+        color: var(--text-muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+      }
+
+      .achievement-stat strong {
+        display: block;
+
+        color: var(--text);
+        font-size: 26px;
+      }
+
+      /* =====================================================
+       PROGRESS
+    ===================================================== */
+
+      .achievement-progress {
+        max-width: 900px;
+        margin: 0 auto 45px;
+
+        padding: 22px;
+
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+
+      .achievement-progress-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        margin-bottom: 12px;
+      }
+
+      .achievement-progress-title {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .achievement-progress-count {
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      .achievement-track {
+        width: 100%;
+        height: 8px;
+
+        overflow: hidden;
+
+        border-radius: 20px;
+        background: var(--surface-2);
+      }
+
+      .achievement-fill {
+        width: 0%;
+        height: 100%;
+
+        border-radius: inherit;
+        background: var(--accent);
+
+        transition: width 0.4s ease;
+      }
+
+      /* =====================================================
+       GRID
+    ===================================================== */
+
+      .achievements-section {
+        max-width: 900px;
+        margin: auto;
+      }
+
+      .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      /* =====================================================
+       CARD
+    ===================================================== */
+
+      .achievement-card {
+        position: relative;
+
+        padding: 24px;
+
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+
+        transition:
+          transform 0.25s ease,
+          border-color 0.25s ease,
+          background 0.25s ease;
+      }
+
+      .achievement-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(139, 92, 246, 0.45);
+        background: var(--surface-2);
+      }
+
+      .achievement-icon {
+        width: 48px;
+        height: 48px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 18px;
+
+        border-radius: 12px;
+
+        background: var(--surface-2);
+
+        font-size: 22px;
+
+        filter: grayscale(1);
+        opacity: 0.45;
+      }
+
+      .achievement-card h3 {
+        margin-bottom: 7px;
+
+        font-size: 15px;
+      }
+
+      .achievement-card p {
+        min-height: 36px;
+
+        color: var(--text-muted);
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      .achievement-reward {
+        display: inline-block;
+
+        margin-top: 15px;
+        padding: 6px 9px;
+
+        border: 1px solid var(--border);
+        border-radius: 6px;
+
+        color: var(--text-muted);
+
+        font-size: 9px;
+        font-weight: 800;
+      }
+
+      /* =====================================================
+       UNLOCKED
+    ===================================================== */
+
+      .achievement-card.unlocked {
+        border-color: rgba(139, 92, 246, 0.45);
+      }
+
+      .achievement-card.unlocked .achievement-icon {
+        filter: none;
+        opacity: 1;
+
+        background: rgba(139, 92, 246, 0.1);
+      }
+
+      .achievement-card.unlocked .achievement-reward {
+        border-color: var(--accent);
+        color: var(--accent-light);
+      }
+
+      .achievement-status {
+        position: absolute;
+
+        top: 18px;
+        right: 18px;
+
+        color: var(--text-muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .achievement-card.unlocked .achievement-status {
+        color: var(--accent-light);
+      }
+
+      /* =====================================================
+       MOBILE
+    ===================================================== */
+
+      @media (max-width: 750px) {
+        .achievement-summary {
+          grid-template-columns: 1fr;
+        }
+
+        .achievements-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 500px) {
+        .achievements-page {
+          padding-top: 60px;
+        }
+
+        .achievements-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .achievement-filters {
+        max-width: 900px;
+        margin: 0 auto 20px;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .achievement-filter {
+        padding: 9px 13px;
+
+        border: 1px solid var(--border);
+        border-radius: 8px;
+
+        background: var(--surface);
+        color: var(--text-muted);
+
+        font-size: 10px;
+        font-weight: 800;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+      }
+
+      .achievement-filter:hover,
+      .achievement-filter.active {
+        border-color: var(--accent);
+        color: var(--text);
+        background: var(--surface-2);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =====================================================
+       NAVBAR
+  ===================================================== -->
+
+    <header class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">AB</span>
+          <span class="logo-text">Dictionary</span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link"> Home </a>
+
+          <a href="dictionary.html" class="nav-link"> Dictionary </a>
+
+          <a href="learn.html" class="nav-link"> Learn </a>
+
+          <a href="quiz.html" class="nav-link"> Quiz </a>
+
+          <a href="favorites.html" class="nav-link"> Favorites </a>
+
+          <a href="achievements.html" class="nav-link active"> Achievements </a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="icon-button" id="theme-toggle" type="button">◐</button>
+
+          <button class="menu-button" id="menu-toggle" type="button">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+       MOBILE MENU
+  ===================================================== -->
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html">Home</a>
+      <a href="dictionary.html">Dictionary</a>
+      <a href="learn.html">Learn</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="achievements.html">Achievements</a>
+    </div>
+
+    <!-- =====================================================
+       MAIN
+  ===================================================== -->
+
+    <main>
+      <section class="achievements-page">
+        <div class="section">
+          <!-- HEADER -->
+
+          <div class="achievements-header">
+            <span class="section-label"> YOUR MILESTONES </span>
+
+            <h1>Achievements.</h1>
+
+            <p>
+              Keep learning, complete challenges, and unlock achievements as
+              your vocabulary grows.
+            </p>
+          </div>
+
+          <!-- SUMMARY -->
+
+          <div class="achievement-summary">
+            <div class="achievement-stat">
+              <span> Unlocked </span>
+
+              <strong id="achievement-unlocked"> 0 </strong>
+            </div>
+
+            <div class="achievement-stat">
+              <span> Total </span>
+
+              <strong id="achievement-total"> 0 </strong>
+            </div>
+
+            <div class="achievement-stat">
+              <span> Completion </span>
+
+              <strong id="achievement-percent"> 0% </strong>
+            </div>
+          </div>
+
+          <!-- PROGRESS -->
+
+          <div class="achievement-progress">
+            <div class="achievement-progress-top">
+              <span class="achievement-progress-title">
+                Achievement Progress
+              </span>
+
+              <span
+                class="achievement-progress-count"
+                id="achievement-progress-count"
+              >
+                0 / 0
+              </span>
+            </div>
+
+            <div class="achievement-track">
+              <div
+                class="achievement-fill"
+                id="achievement-progress-fill"
+              ></div>
+            </div>
+          </div>
+
+          <!-- ACHIEVEMENTS -->
+
+          <!-- =====================================================
+     ACHIEVEMENTS
+===================================================== -->
+
+          <section class="achievements-section">
+            <!-- ACHIEVEMENT FILTERS -->
+            <div class="achievement-filters" id="achievement-filters">
+              <button
+                class="achievement-filter active"
+                data-filter="all"
+                type="button"
+              >
+                All
+              </button>
+
+              <button
+                class="achievement-filter"
+                data-filter="learning"
+                type="button"
+              >
+                Learning
+              </button>
+
+              <button
+                class="achievement-filter"
+                data-filter="quiz"
+                type="button"
+              >
+                Quiz
+              </button>
+
+              <button
+                class="achievement-filter"
+                data-filter="streak"
+                type="button"
+              >
+                Streaks
+              </button>
+
+              <button
+                class="achievement-filter"
+                data-filter="favorites"
+                type="button"
+              >
+                Favorites
+              </button>
+
+              <button
+                class="achievement-filter"
+                data-filter="special"
+                type="button"
+              >
+                Special
+              </button>
+            </div>
+
+            <!-- ACHIEVEMENT CARDS -->
+            <div class="achievements-grid" id="achievements-grid"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- =====================================================
+       FOOTER
+  ===================================================== -->
+
+    <footer class="footer">
+      <div class="footer-container">
+        <div>
+          <a href="index.html" class="logo">
+            <span class="logo-mark">AB</span>
+            <span class="logo-text">Dictionary</span>
+          </a>
+
+          <p class="footer-description">
+            A modern English vocabulary platform for better learning.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <a href="dictionary.html"> Dictionary </a>
+
+          <a href="learn.html"> Learn </a>
+
+          <a href="quiz.html"> Quiz </a>
+
+          <a href="achievements.html"> Achievements </a>
+
+          <a href="about.html"> About </a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        © 2026 AB Dictionary. Built for better vocabulary.
+      </div>
+    </footer>
+
+    <!-- =====================================================
+       SCRIPTS
+  ===================================================== -->
+
+    <script src="js/app.js"></script>
+    <script src="js/achievements.js"></script>
+  </body>
+</html>
