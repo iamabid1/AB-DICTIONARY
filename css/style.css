@@ -2622,3 +2622,14 @@ input:focus-visible {
   height: auto;
   display: block;
 }
+
+
+
+/* Mobile menu */
+#mobile-menu {
+  display: none;
+}
+
+#mobile-menu.open {
+  display: flex;
+}
