@@ -2625,11 +2625,18 @@ input:focus-visible {
 
 
 
-/* Mobile menu */
-#mobile-menu {
+
+
+
+/* =====================================================
+   MOBILE MENU FIX
+===================================================== */
+
+.mobile-menu {
   display: none;
 }
 
-#mobile-menu.open {
+.mobile-menu.open {
   display: flex;
+  flex-direction: column;
 }
